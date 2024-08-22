@@ -1,4 +1,4 @@
-namespace Apps.App.Api;
+namespace Apps.Akeneo.Api;
 
 public class AppClient
 {

@@ -1,8 +1,8 @@
-using Apps.App.Invocables;
+using Apps.Akeneo.Invocables;
 using Blackbird.Applications.Sdk.Common.Actions;
 using Blackbird.Applications.Sdk.Common.Invocation;
 
-namespace Apps.App.Actions;
+namespace Apps.Akeneo.Actions;
 
 [ActionList]
 public class Actions : AppInvocable
