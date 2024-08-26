@@ -1,4 +1,5 @@
-﻿using Blackbird.Applications.Sdk.Common.Authentication;
+﻿using Apps.Akeneo.Constants;
+using Blackbird.Applications.Sdk.Common.Authentication;
 using Blackbird.Applications.Sdk.Common.Connections;
 
 namespace Apps.Akeneo.Connections;
@@ -14,6 +15,9 @@ public class ConnectionDefinition : IConnectionDefinition
             ConnectionUsage = ConnectionUsage.Actions,
             ConnectionProperties = new List<ConnectionProperty>
             {
+                new(CredsNames.Url) { DisplayName = "Instance URL" },
+                new(CredsNames.Username) { DisplayName = "User name" },
+                new(CredsNames.Password) { DisplayName = "Password", Sensitive = true },
             }
         }
     };

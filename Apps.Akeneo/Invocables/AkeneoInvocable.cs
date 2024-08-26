@@ -5,14 +5,14 @@ using Blackbird.Applications.Sdk.Common.Invocation;
 
 namespace Apps.Akeneo.Invocables;
 
-public class AppInvocable : BaseInvocable
+public class AkeneoInvocable : BaseInvocable
 {
     protected AuthenticationCredentialsProvider[] Creds =>
         InvocationContext.AuthenticationCredentialsProviders.ToArray();
 
-    protected AppClient Client { get; }
-    public AppInvocable(InvocationContext invocationContext) : base(invocationContext)
+    protected AkeneoClient Client { get; }
+    public AkeneoInvocable(InvocationContext invocationContext) : base(invocationContext)
     {
-        Client = new();
+        Client = new(Creds);
     }
 }
