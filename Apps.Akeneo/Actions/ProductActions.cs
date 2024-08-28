@@ -78,8 +78,8 @@ public class ProductActions : AkeneoInvocable
 
         var updatedProduct = ProductHtmlConverter.UpdateFromHtml(product, locale.Locale, fileStream);
 
-        var request = new RestRequest($"/products-uuid/{input.ProductId}")
-            .WithJsonBody(updatedProduct, JsonConfig.Settings);
+        var request = new RestRequest($"/products-uuid/{input.ProductId}", Method.Patch)
+            .WithJsonBody(new UpdateProductRequest(updatedProduct), JsonConfig.Settings);
 
         await Client.ExecuteWithErrorHandling(request);
     }

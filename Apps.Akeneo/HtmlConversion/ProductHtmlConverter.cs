@@ -2,36 +2,43 @@ using System.Text;
 using Apps.Akeneo.Models.Entities;
 using HtmlAgilityPack;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace Apps.Akeneo.HtmlConversion;
 
 public static class ProductHtmlConverter
 {
     private const string ValueNameAttribute = "name";
+    private const string ValueScopeAttribute = "scope";
 
     public static Stream ToHtml(ProductContentEntity product, string locale)
     {
         var (doc, body) = PrepareEmptyHtmlDocument();
         product.Values
             .Select(x =>
-                new KeyValuePair<string, ProductValueEntity?>(x.Key, x.Value.FirstOrDefault(x => x.Locale == locale)))
+                new KeyValuePair<string, ProductValueEntity[]>(x.Key, x.Value.Where(x => x.Locale == locale).ToArray()))
             .Where(x => x.Value != null)
             .ToList()
-            .ForEach(x => ConvertProductValue(x!, doc, body));
+            .ForEach(x => ConvertProductValue(x, doc, body));
 
         var htmlBytes = Encoding.UTF8.GetBytes(doc.DocumentNode.OuterHtml);
         return new MemoryStream(htmlBytes);
     }
 
-    private static void ConvertProductValue(KeyValuePair<string, ProductValueEntity> value, HtmlDocument doc,
+    private static void ConvertProductValue(KeyValuePair<string, ProductValueEntity[]> value, HtmlDocument doc,
         HtmlNode body)
     {
-        var valueNode = doc.CreateElement(HtmlConstants.Div);
-        valueNode.InnerHtml = JsonConvert.SerializeObject(value.Value.Data);
-        valueNode.SetAttributeValue(ValueNameAttribute, value.Key);
+        foreach (var productValueEntity in value.Value)
+        {
+            var valueNode = doc.CreateElement(HtmlConstants.Div);
+            valueNode.InnerHtml =
+                "\"" + (productValueEntity.Data as string ?? JsonConvert.SerializeObject(productValueEntity.Data)) +
+                "\"";
 
-        body.AppendChild(valueNode);
+            valueNode.SetAttributeValue(ValueNameAttribute, value.Key);
+            valueNode.SetAttributeValue(ValueScopeAttribute, productValueEntity.Scope);
+
+            body.AppendChild(valueNode);
+        }
     }
 
     private static (HtmlDocument document, HtmlNode bodyNode) PrepareEmptyHtmlDocument()
@@ -54,7 +61,7 @@ public static class ProductHtmlConverter
         var doc = new HtmlDocument();
         doc.Load(fileStream);
 
-        var valueNodes = doc.DocumentNode.ChildNodes
+        var valueNodes = doc.DocumentNode.SelectSingleNode("//body").ChildNodes
             .Where(x => x.Attributes[ValueNameAttribute]?.Value is not null)
             .ToArray();
 
@@ -63,12 +70,13 @@ public static class ProductHtmlConverter
             if (!product.Values.TryGetValue(valueNode.Attributes[ValueNameAttribute].Value, out var value))
                 continue;
 
-            var valueEntity = value.FirstOrDefault(x => x.Locale == locale);
-                
-            if(valueEntity is null)
+            var valueEntity = value.FirstOrDefault(x =>
+                x.Locale == locale && x.Scope == valueNode.Attributes[ValueScopeAttribute]?.Value);
+
+            if (valueEntity is null)
                 continue;
-            
-            valueEntity.Data = JToken.Parse(valueNode.InnerHtml);
+
+            valueEntity.Data = valueNode.InnerHtml.Trim().Trim('\"');
         }
 
         return product;
