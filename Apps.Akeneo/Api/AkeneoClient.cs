@@ -93,6 +93,10 @@ public class AkeneoClient : BlackBirdRestClient
     protected override Exception ConfigureErrorException(RestResponse response)
     {
         var error = JsonConvert.DeserializeObject<ErrorResponse>(response.Content);
-        return new(error.Message);
+
+        var errorMessage = error.Errors is null
+            ? error.Message
+            : $"{error.Message} {string.Join(" ", error.Errors.Select(x => x.Message))}";
+        return new(errorMessage);
     }
 }
