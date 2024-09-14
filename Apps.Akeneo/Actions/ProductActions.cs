@@ -47,6 +47,15 @@ public class ProductActions : AkeneoInvocable
         return Client.ExecuteWithErrorHandling<ProductEntity>(request);
     }
 
+    [Action("Update product info", Description = "Update details of specific product")]
+    public Task UpdateProduct([ActionParameter] ProductRequest product, [ActionParameter] UpdateProductInfoInput input)
+    {
+        var request = new RestRequest($"/products-uuid/{product.ProductId}", Method.Patch)
+            .WithJsonBody(input, JsonConfig.Settings);
+
+        return Client.ExecuteWithErrorHandling(request);
+    }
+
     [Action("Delete product", Description = "Delete specific product")]
     public Task DeleteProduct([ActionParameter] ProductRequest input)
     {
