@@ -12,6 +12,7 @@ using Blackbird.Applications.Sdk.Common.Actions;
 using Blackbird.Applications.Sdk.Common.Invocation;
 using Blackbird.Applications.SDK.Extensions.FileManagement.Interfaces;
 using Blackbird.Applications.Sdk.Utils.Extensions.Http;
+using Blackbird.Applications.Sdk.Utils.Extensions.String;
 using RestSharp;
 
 namespace Apps.Akeneo.Actions;
@@ -33,6 +34,20 @@ public class ProductActions : AkeneoInvocable
         var searchQuery =
             $"{{\"name\":[{{\"operator\":\"CONTAINS\",\"locale\":\"en_US\",\"value\":\"{input.Name}\"}}]}}";
         var request = new RestRequest($"products-uuid?search={searchQuery}");
+
+        return new()
+        {
+            Products = await Client.Paginate<ProductEntity>(request)
+        };
+    }
+
+    [Action("Search products in catalog", Description = "Search for products in a specific catalog")]
+    public async Task<ListProductResponse> SearchProductsInCatalog(
+        [ActionParameter] CatalogRequest catalog,
+        [ActionParameter] SearchProductsInCatalogInput input)
+    {
+        var endpoint = $"catalogs/{catalog.CatalogId}/product-uuids".WithQuery(input);
+        var request = new RestRequest(endpoint);
 
         return new()
         {
