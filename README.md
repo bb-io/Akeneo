@@ -1,4 +1,5 @@
 
+
 # Blackbird.io Akeneo
 
 Blackbird is the new automation backbone for the language technology industry. Blackbird provides enterprise-scale automation and orchestration with a simple no-code/low-code platform. Blackbird enables ambitious organizations to identify, vet and automate as many processes as possible. Not just localization workflows, but any business and IT process. This repository represents an application that is deployable on Blackbird and usable inside the workflow editor.
@@ -31,8 +32,16 @@ Before you can connect you need to make sure that:
 -   **Delete product** deletes a specific product.
 -   **Get product as HTML** returns product values for a specified locale in an HTML format.
 -   **Get product info** returns details about a specific product.
--   **Search products** returns a list of products based on filter criteria.
+-   **Update product info** updates details of a specific product.
+-   **Search products** returns a list of products based on filter criteria, for example product name.
 -   **Update product from HTML** updates product content values from a provided HTML file.
+
+## Events
+
+### Products
+
+-   **On products created** triggers when new products are created.
+-   **On products updated** triggers when any products are updated.
 
 ## Example
 
