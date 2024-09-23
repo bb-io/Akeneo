@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net.Mime;
 using Apps.Akeneo.Constants;
 using Apps.Akeneo.HtmlConversion;
@@ -13,6 +14,7 @@ using Blackbird.Applications.Sdk.Common.Invocation;
 using Blackbird.Applications.SDK.Extensions.FileManagement.Interfaces;
 using Blackbird.Applications.Sdk.Utils.Extensions.Http;
 using Blackbird.Applications.Sdk.Utils.Extensions.String;
+using Blackbird.Applications.Sdk.Utils.Extensions.System;
 using RestSharp;
 
 namespace Apps.Akeneo.Actions;
@@ -46,12 +48,21 @@ public class ProductActions : AkeneoInvocable
         [ActionParameter] CatalogRequest catalog,
         [ActionParameter] SearchProductsInCatalogInput input)
     {
-        var endpoint = $"catalogs/{catalog.CatalogId}/product-uuids".WithQuery(input);
+        var endpoint = $"catalogs/{catalog.CatalogId}/products";
+        var query = new Dictionary<string, string>()
+            {
+                ["updated_after"] = input.UpdatedAfter?.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture),
+                ["updated_before"] = input.UpdatedBefore?.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture),
+            }.AllIsNotNull()
+            .ToList();
+
+        query.ForEach(x => endpoint = endpoint.SetQueryParameter(x.Key, x.Value));
+
         var request = new RestRequest(endpoint);
 
         return new()
         {
-            Products = await Client.Paginate<ProductEntity>(request)
+            Products = await Client.PaginateUsingSearchAfter<ProductEntity>(request)
         };
     }
 

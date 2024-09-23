@@ -10,14 +10,12 @@ public class ConnectionDefinition : IConnectionDefinition
     {
         new()
         {
-            Name = "Developer API key",
-            AuthenticationType = ConnectionAuthenticationType.Undefined,
+            Name = "OAuth2",
+            AuthenticationType = ConnectionAuthenticationType.OAuth2,
             ConnectionUsage = ConnectionUsage.Actions,
             ConnectionProperties = new List<ConnectionProperty>
             {
                 new(CredsNames.Url) { DisplayName = "Instance URL" },
-                new(CredsNames.Username) { DisplayName = "User name" },
-                new(CredsNames.Password) { DisplayName = "Password", Sensitive = true },
             }
         }
     };

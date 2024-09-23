@@ -1,9 +1,7 @@
 using System.Net.Mime;
-using System.Text;
 using Apps.Akeneo.Constants;
 using Apps.Akeneo.Models.Response;
 using Blackbird.Applications.Sdk.Common.Authentication;
-using Blackbird.Applications.Sdk.Utils.Extensions.Http;
 using Blackbird.Applications.Sdk.Utils.Extensions.Sdk;
 using Blackbird.Applications.Sdk.Utils.Extensions.String;
 using Blackbird.Applications.Sdk.Utils.RestSharp;
@@ -14,9 +12,6 @@ namespace Apps.Akeneo.Api;
 
 public class AkeneoClient : BlackBirdRestClient
 {
-    private readonly AuthenticationCredentialsProvider[] _creds;
-    private string? _accessToken;
-
     protected override JsonSerializerSettings? JsonSettings => JsonConfig.Settings;
 
     public AkeneoClient(AuthenticationCredentialsProvider[] creds) : base(new()
@@ -24,19 +19,8 @@ public class AkeneoClient : BlackBirdRestClient
         BaseUrl = (creds.Get(CredsNames.Url).Value.TrimEnd('/') + "/api/rest/v1").ToUri()
     })
     {
-        _creds = creds;
         this.AddDefaultHeader("Accept", MediaTypeNames.Application.Json);
-    }
-
-    public override async Task<RestResponse> ExecuteWithErrorHandling(RestRequest request)
-    {
-        if (string.IsNullOrEmpty(_accessToken))
-        {
-            _accessToken = await GetToken();
-            this.AddDefaultHeader("Authorization", $"Bearer {_accessToken}");
-        }
-
-        return await base.ExecuteWithErrorHandling(request);
+        this.AddDefaultHeader("Authorization", $"Bearer {creds.Get(CredsNames.AccessToken).Value}");
     }
 
     public async Task<List<T>> Paginate<T>(RestRequest request)
@@ -54,6 +38,10 @@ public class AkeneoClient : BlackBirdRestClient
                 .SetQueryParameter("limit", limit.ToString());
 
             response = await ExecuteWithErrorHandling<PaginationResponse<T>>(request);
+
+            if (!string.IsNullOrEmpty(response.Error))
+                throw new(response.Error);
+
             result.AddRange(response.Embedded.Items);
 
             page++;
@@ -62,32 +50,25 @@ public class AkeneoClient : BlackBirdRestClient
         return result;
     }
 
-    private async Task<string> GetToken()
+    public async Task<List<T>> PaginateUsingSearchAfter<T>(RestRequest request)
     {
-        var userName = _creds.Get(CredsNames.Username).Value;
-        var password = _creds.Get(CredsNames.Password).Value;
+        var result = new List<T>();
+        PaginationResponse<T>? response;
 
-        var endpoint = $"{_creds.Get(CredsNames.Url).Value.TrimEnd('/')}/api/oauth/v1/token";
-        var request = new RestRequest(endpoint, Method.Post)
-            .WithJsonBody(new
-            {
-                grant_type = "password",
-                username = _creds.Get(CredsNames.Username).Value,
-                password = _creds.Get(CredsNames.Password).Value,
-            })
-            .WithHeaders(new()
-            {
-                ["Authorization"] = $"Basic {Convert.ToBase64String(Encoding.GetEncoding("ISO-8859-1")
-                    .GetBytes(ApplicationConstants.ClientId + ":" + ApplicationConstants.ClientSecret))}"
-            });
+        do
+        {
+            response = await ExecuteWithErrorHandling<PaginationResponse<T>>(request);
 
-        var response = await ExecuteAsync(request);
+            if (!string.IsNullOrEmpty(response.Error))
+                throw new(response.Error);
 
-        if (!response.IsSuccessStatusCode)
-            throw new($"Something went wrong during acquiring the token: {response.Content}");
+            result.AddRange(response.Embedded.Items);
 
-        var authKeys = JsonConvert.DeserializeObject<AuthKeysResponse>(response.Content!, JsonSettings)!;
-        return authKeys.AccessToken;
+            if (response.Links.Next?.Href != null)
+                request.Resource = response.Links.Next?.Href;
+        } while (response.Links.Next != null);
+
+        return result;
     }
 
     protected override Exception ConfigureErrorException(RestResponse response)

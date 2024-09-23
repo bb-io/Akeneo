@@ -34,6 +34,7 @@ Before you can connect you need to make sure that:
 -   **Get product info** returns details about a specific product.
 -   **Update product info** updates details of a specific product.
 -   **Search products** returns a list of products based on filter criteria, for example product name.
+-   **Search products in catalog** returns a list of products in certain catalog based on filter criteria.
 -   **Update product from HTML** updates product content values from a provided HTML file.
 
 ## Events
@@ -42,6 +43,7 @@ Before you can connect you need to make sure that:
 
 -   **On products created** triggers when new products are created.
 -   **On products updated** triggers when any products are updated.
+-   **On products added to catalog** triggers when any products are added to the catalog.
 
 ## Example
 

@@ -43,11 +43,11 @@ public class PollingList : AkeneoInvocable
             };
         }
 
-        var endpoint = $"catalogs/{catalog.CatalogId}/product-uuids";
-        var productsRequest = new RestRequest(endpoint);
-        var products = (await Client.Paginate<ProductEntity>(productsRequest))
-            .Where(x => x.Created.ToUniversalTime() >= request.Memory.LastInteractionDate)
-            .ToArray();
+        var productsRequest = new RestRequest($"catalogs/{catalog.CatalogId}/products");
+        var response = await Client.PaginateUsingSearchAfter<ProductEntity>(productsRequest);
+
+        var products = response
+            .Where(x => x.Created.ToUniversalTime() >= request.Memory.LastInteractionDate);
 
         if (!products.Any())
         {
