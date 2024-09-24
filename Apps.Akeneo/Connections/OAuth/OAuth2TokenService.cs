@@ -4,7 +4,6 @@ using Apps.Akeneo.Constants;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Authentication.OAuth2;
 using Blackbird.Applications.Sdk.Common.Invocation;
-using Blackbird.Applications.Sdk.Utils.Extensions.Sdk;
 using RestSharp;
 
 namespace Apps.Akeneo.Connections.OAuth;
@@ -18,7 +17,7 @@ public class OAuth2TokenService : BaseInvocable, IOAuth2TokenService
     public async Task<Dictionary<string, string>> RequestToken(string state, string code,
         Dictionary<string, string> values, CancellationToken cancellationToken)
     {
-        var instanceUrl = InvocationContext.AuthenticationCredentialsProviders.Get(CredsNames.Url).Value.TrimEnd('/');
+        var instanceUrl = values[CredsNames.Url].TrimEnd('/');
         var endpoint = $"{instanceUrl}/connect/apps/v1/oauth2/token";
 
         var formParameters = new Dictionary<string, string>()
@@ -33,6 +32,10 @@ public class OAuth2TokenService : BaseInvocable, IOAuth2TokenService
         formParameters.ToList().ForEach(x => request.AddParameter(x.Key, x.Value));
 
         var response = await new RestClient().ExecuteAsync<Dictionary<string, string>>(request, cancellationToken);
+
+        if (response.Data.ContainsKey("error"))
+            throw new($"{response.Data["error"]}: {response.Data["error_description"]}");
+        
         return response.Data!;
     }
 
@@ -51,7 +54,7 @@ public class OAuth2TokenService : BaseInvocable, IOAuth2TokenService
 
     private string GetCodeChallenge(string codeIdentifier)
     {
-        var dataToHash = codeIdentifier +  ApplicationConstants.ClientSecret;
+        var dataToHash = codeIdentifier + ApplicationConstants.ClientSecret;
 
         var byteArray = Encoding.UTF8.GetBytes(dataToHash);
 
