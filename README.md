@@ -12,16 +12,18 @@ Akeneo’s PIM (Product Information Management) solution is designed to ingest, 
 
 Before you can connect you need to make sure that:
 
-- You have an API user credentials. You can get them by following this Akeneo guide: https://api.akeneo.com/documentation/authentication.html#api-user-creation
+- You have an active Akeneo instance and you have sufficient rights to add apps to it.
 
 ## Connecting
 
 1.  Navigate to Apps, and identify the **Akeneo** app. You can use search to find it.
 2.  Click _Add Connection_.
-3.  Name your connection for future reference e.g. 'My organization'.
+3.  Name your connection for future reference e.g. 'My Akeneo connection'.
 4.  Fill the `Instance URL` field with the url of your Akeneo instance.
-5.  Fill in the Username and Password of your API user that you created following the guide above.
+5.  Click _Authorize connection_ and go through the authentication flow in the popup window.
 6.  When you return to Blackbird, confirm that the connection has appeared and the status is _Connected_.
+
+![1727340303813](image/README/1727340303813.png)
 
 ## Actions
 
