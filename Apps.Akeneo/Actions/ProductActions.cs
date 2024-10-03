@@ -19,6 +19,7 @@ using RestSharp;
 
 namespace Apps.Akeneo.Actions;
 
+// TODO: Duplicate all these actions also for "Product models" and "Categories" (Categories may not need HTML import/export just simple name update, investigate this)
 [ActionList]
 public class ProductActions : AkeneoInvocable
 {
@@ -30,6 +31,8 @@ public class ProductActions : AkeneoInvocable
         _fileManagementClient = fileManagementClient;
     }
 
+
+    // TODO: Add more filter criteria starting with categories, locales and updated date
     [Action("Search products", Description = "Search for products based on filter criteria")]
     public async Task<ListProductResponse> SearchProducts([ActionParameter] SearchProductsRequest input)
     {
@@ -43,29 +46,7 @@ public class ProductActions : AkeneoInvocable
         };
     }
 
-    [Action("Search products in catalog", Description = "Search for products in a specific catalog")]
-    public async Task<ListProductResponse> SearchProductsInCatalog(
-        [ActionParameter] CatalogRequest catalog,
-        [ActionParameter] SearchProductsInCatalogInput input)
-    {
-        var endpoint = $"catalogs/{catalog.CatalogId}/products";
-        var query = new Dictionary<string, string>()
-            {
-                ["updated_after"] = input.UpdatedAfter?.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture),
-                ["updated_before"] = input.UpdatedBefore?.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture),
-            }.AllIsNotNull()
-            .ToList();
-
-        query.ForEach(x => endpoint = endpoint.SetQueryParameter(x.Key, x.Value));
-
-        var request = new RestRequest(endpoint);
-
-        return new()
-        {
-            Products = await Client.PaginateUsingSearchAfter<ProductEntity>(request)
-        };
-    }
-
+    // TODO: This action should also return the categories
     [Action("Get product info", Description = "Get details about specific product")]
     public Task<ProductEntity> GetProduct([ActionParameter] ProductRequest input)
     {
@@ -73,6 +54,7 @@ public class ProductActions : AkeneoInvocable
         return Client.ExecuteWithErrorHandling<ProductEntity>(request);
     }
 
+    // TODO: This action should also update the categories 
     [Action("Update product info", Description = "Update details of specific product")]
     public Task UpdateProduct([ActionParameter] ProductRequest product, [ActionParameter] UpdateProductInfoInput input)
     {

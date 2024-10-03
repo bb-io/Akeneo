@@ -31,7 +31,7 @@ public static class ProductHtmlConverter
         {
             var valueNode = doc.CreateElement(HtmlConstants.Div);
             valueNode.InnerHtml =
-                "\"" + (productValueEntity.Data as string ?? JsonConvert.SerializeObject(productValueEntity.Data)) +
+                "\"" + (productValueEntity.Data as string ?? JsonConvert.SerializeObject(productValueEntity.Data)) + // TODO: No JSON in HTML
                 "\"";
 
             valueNode.SetAttributeValue(ValueNameAttribute, value.Key);

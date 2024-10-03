@@ -15,65 +15,15 @@ public class PollingList : AkeneoInvocable
     public PollingList(InvocationContext invocationContext) : base(invocationContext)
     {
     }
+    
+    // TODO: Add optional search filters starting with 'category' and 'locales'
+    // TODO: Add "On product models created or updated"
+    // TODO: Add "On categories created or updated"
 
-    [PollingEvent("On products created", "On any products are created")]
+    [PollingEvent("On products created or updated", "This event triggers when any products are created or updated")]
     public Task<PollingEventResponse<DateMemory, ListProductResponse>> OnProductsCreated(
         PollingEventRequest<DateMemory> request) => HandleProductPolling(request,
-        product => product.Created.ToUniversalTime() >= request.Memory?.LastInteractionDate);
-
-    [PollingEvent("On products updated", "On any products are updated")]
-    public Task<PollingEventResponse<DateMemory, ListProductResponse>> OnProductsUpdated(
-        PollingEventRequest<DateMemory> request) => HandleProductPolling(request,
-        product => product.Updated?.ToUniversalTime() >= request.Memory?.LastInteractionDate);
-
-    [PollingEvent("On products added to catalog", "On new products added to the catalog")]
-    public async Task<PollingEventResponse<DateMemory, ListProductResponse>> OnProductsAddedToTheCatalog(
-        PollingEventRequest<DateMemory> request,
-        [PollingEventParameter] CatalogRequest catalog)
-    {
-        if (request.Memory is null)
-        {
-            return new()
-            {
-                FlyBird = false,
-                Memory = new()
-                {
-                    LastInteractionDate = DateTime.UtcNow
-                }
-            };
-        }
-
-        var productsRequest = new RestRequest($"catalogs/{catalog.CatalogId}/products");
-        var response = await Client.PaginateUsingSearchAfter<ProductEntity>(productsRequest);
-
-        var products = response
-            .Where(x => x.Created.ToUniversalTime() >= request.Memory.LastInteractionDate);
-
-        if (!products.Any())
-        {
-            return new()
-            {
-                FlyBird = false,
-                Memory = new()
-                {
-                    LastInteractionDate = DateTime.UtcNow
-                }
-            };
-        }
-
-        return new()
-        {
-            FlyBird = true,
-            Result = new()
-            {
-                Products = products
-            },
-            Memory = new()
-            {
-                LastInteractionDate = DateTime.UtcNow
-            }
-        };
-    }
+        product => product.Created.ToUniversalTime() >= request.Memory?.LastInteractionDate || product.Updated?.ToUniversalTime() >= request.Memory?.LastInteractionDate);
 
     private async Task<PollingEventResponse<DateMemory, ListProductResponse>> HandleProductPolling(
         PollingEventRequest<DateMemory> request, Func<ProductEntity, bool> filter)
@@ -91,6 +41,8 @@ public class PollingList : AkeneoInvocable
         }
 
         var productsRequest = new RestRequest("products-uuid");
+
+        // TODO: https://api.akeneo.com/documentation/filter.html#by-update-date-3 <- use this instead of fetching ALL products
         var products = (await Client.Paginate<ProductEntity>(productsRequest))
             .Where(filter)
             .ToArray();
