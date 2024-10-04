@@ -12,6 +12,9 @@ public class ProductEntity
     public string Family { get; set; }
     
     public string? Parent { get; set; }
+
+    public IEnumerable<string> Categories { get; set; }
+    public IEnumerable<string> Groups { get; set; }
     
     [Display("Created at")]
     public DateTime Created { get; set; }

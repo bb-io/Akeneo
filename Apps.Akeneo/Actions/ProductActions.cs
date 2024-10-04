@@ -16,6 +16,8 @@ using Blackbird.Applications.Sdk.Utils.Extensions.Http;
 using Blackbird.Applications.Sdk.Utils.Extensions.String;
 using Blackbird.Applications.Sdk.Utils.Extensions.System;
 using RestSharp;
+using Apps.Akeneo.Models.Queries;
+using Newtonsoft.Json;
 
 namespace Apps.Akeneo.Actions;
 
@@ -31,14 +33,18 @@ public class ProductActions : AkeneoInvocable
         _fileManagementClient = fileManagementClient;
     }
 
-
-    // TODO: Add more filter criteria starting with categories, locales and updated date
     [Action("Search products", Description = "Search for products based on filter criteria")]
-    public async Task<ListProductResponse> SearchProducts([ActionParameter] SearchProductsRequest input)
+    public async Task<ListProductResponse> SearchProducts([ActionParameter] SearchProductsRequest input, [ActionParameter] LocaleRequest locale)
     {
-        var searchQuery =
-            $"{{\"name\":[{{\"operator\":\"CONTAINS\",\"locale\":\"en_US\",\"value\":\"{input.Name}\"}}]}}";
-        var request = new RestRequest($"products-uuid?search={searchQuery}");
+        var query = new SearchQuery();
+        query.Add("name", new QueryOperator { Operator = "CONTAINS", Value = input.Name, Locale = locale.Locale });
+        query.Add("categories", new QueryOperator { Operator = "IN", Value = input.Categories });
+        query.Add("enabled", new QueryOperator { Operator = "=", Value = input.Enabled });
+        query.Add("updated", new QueryOperator { Operator = ">", Value = input.Updated?.ToString("yyyy-MM-dd HH:mm:ss") });
+
+        var request = new RestRequest($"products-uuid");
+        request.AddQueryParameter("locales", locale.Locale);
+        request.AddQueryParameter("search", query.ToString());
 
         return new()
         {
@@ -46,7 +52,6 @@ public class ProductActions : AkeneoInvocable
         };
     }
 
-    // TODO: This action should also return the categories
     [Action("Get product info", Description = "Get details about specific product")]
     public Task<ProductEntity> GetProduct([ActionParameter] ProductRequest input)
     {
@@ -54,7 +59,6 @@ public class ProductActions : AkeneoInvocable
         return Client.ExecuteWithErrorHandling<ProductEntity>(request);
     }
 
-    // TODO: This action should also update the categories 
     [Action("Update product info", Description = "Update details of specific product")]
     public Task UpdateProduct([ActionParameter] ProductRequest product, [ActionParameter] UpdateProductInfoInput input)
     {
