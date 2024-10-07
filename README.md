@@ -15,8 +15,8 @@ Before you can connect you need to make sure that:
 - You have an active Akeneo instance and you have sufficient rights to add apps to it.
 - Go to _Connect_ -> _App Store_ and click on _Create an app_ in the top right corner.
 - Give your app a name, for example "Blackbird".
-- The activate URL is irrelevant for Blackbird, you can give it the Blackbird login URL like _https://de-1.blackbird.io_.
-- For the callback URL fill in _https://bridge.blackbird.io/api/AuthorizationCode_.
+- The activate URL is irrelevant for Blackbird, you can give it the Blackbird login URL like `https://de-1.blackbird.io`.
+- For the callback URL fill in `https://bridge.blackbird.io/api/AuthorizationCode`.
 - You will receive a `Client ID` and a `Client Secret`. Copy and save these values for the next steps.
 
 ![1728308561748](image/README/1728308561748.png)
@@ -31,7 +31,7 @@ Before you can connect you need to make sure that:
 6.  Click _Authorize connection_ and go through the authentication flow in the popup window.
 7.  When you return to Blackbird, confirm that the connection has appeared and the status is _Connected_.
 
-![1727340303813](image/README/1727340303813.png)
+![1728309237542](image/README/1728309237542.png)
 
 ## Actions
 

@@ -23,11 +23,11 @@ public class OAuth2TokenService : AkeneoInvocable, IOAuth2TokenService
 
         var formParameters = new Dictionary<string, string>()
         {
-            ["client_id"] = ClientId,
+            ["client_id"] = values[CredsNames.ClientID],
             ["grant_type"] = "authorization_code",
             ["code"] = code,
             ["code_identifier"] = state,
-            ["code_challenge"] = GetCodeChallenge(state),
+            ["code_challenge"] = GetCodeChallenge(state, values[CredsNames.ClientID]),
         };
         var request = new RestRequest(endpoint, Method.Post);
         formParameters.ToList().ForEach(x => request.AddParameter(x.Key, x.Value));
@@ -53,9 +53,9 @@ public class OAuth2TokenService : AkeneoInvocable, IOAuth2TokenService
 
     public bool IsRefreshToken(Dictionary<string, string> values) => false;
 
-    private string GetCodeChallenge(string codeIdentifier)
+    private string GetCodeChallenge(string codeIdentifier, string secret)
     {
-        var dataToHash = codeIdentifier + ClientSecret;
+        var dataToHash = codeIdentifier + secret;
 
         var byteArray = Encoding.UTF8.GetBytes(dataToHash);
 

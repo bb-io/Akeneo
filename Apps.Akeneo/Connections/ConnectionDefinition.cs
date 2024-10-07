@@ -17,7 +17,7 @@ public class ConnectionDefinition : IConnectionDefinition
             {
                 new(CredsNames.Url) { DisplayName = "Instance URL" },
                 new(CredsNames.ClientID) { DisplayName = "Client ID" },
-                new(CredsNames.ClientSecret) { DisplayName = "Client secret" },
+                new(CredsNames.ClientSecret) { DisplayName = "Client secret", Sensitive = true },
             }
         }
     };
