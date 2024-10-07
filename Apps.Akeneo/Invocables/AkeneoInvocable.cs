@@ -13,15 +13,9 @@ public class AkeneoInvocable : BaseInvocable
         InvocationContext.AuthenticationCredentialsProviders.ToArray();
 
     protected AkeneoClient Client { get; }
-    protected string ClientId { get; }
-    protected string ClientSecret { get; }
-    protected string Url { get; set; }
 
     public AkeneoInvocable(InvocationContext invocationContext) : base(invocationContext)
     {
         Client = new(Creds);
-        ClientId = Creds.Get(CredsNames.ClientID).Value;
-        ClientSecret = Creds.Get(CredsNames.ClientSecret).Value;
-        Url = Creds.Get(CredsNames.Url).Value;
     }
 }

@@ -21,7 +21,7 @@ public class OAuth2AuthorizationService : AkeneoInvocable, IOAuth2AuthorizeServi
         var parameters = new Dictionary<string, string>
         {
             { "scope", ApplicationConstants.Scopes },
-            { "client_id", ClientId },
+            { "client_id", values[CredsNames.ClientID] },
             { "response_type", "code" },
             { "state", values["state"] },
             { "authorization_url", $"{instanceUrl}/connect/apps/v1/authorize" },
