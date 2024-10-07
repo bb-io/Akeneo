@@ -75,6 +75,12 @@ All products and product models return information about categories. You can use
 
 ![image](https://github.com/user-attachments/assets/9eb04458-1d84-4b6f-9450-97b59b60c729)
 
+The above example shows a very simple manually triggered bird that translates certain products using DeepL.
+
+![1728312887298](image/README/1728312887298.png)
+
+In the above example we respond to new products being updated or created, creating new memoQ projects for them and uploading the translatable files to memoQ.
+
 ## Missing features
 
 Akeneo is a huge app with a lot of features. If any of these features are particularly interesting to you, let us know!
