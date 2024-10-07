@@ -7,17 +7,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Apps.Akeneo.Models.Request.ProductModel
+namespace Apps.Akeneo.Polling.Models
 {
-    public class SearchProductModelRequest
+    public class ProductFilter
     {
-        public string? Code { get; set; }
-
-        [Display("Categories", Description = "Filter the result by product models that contain any of the following categories")]
+        [Display("Categories", Description = "Filter the result by products that contain any of the following categories")]
         [DataSource(typeof(CategoryDataSourceHandler))]
         public IEnumerable<string>? Categories { get; set; }
 
-        [Display("Updated after")]
-        public DateTime? Updated { get; set; }
+        public bool? Enabled { get; set; }
     }
 }

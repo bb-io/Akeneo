@@ -8,7 +8,7 @@ public class SearchProductsRequest
 {
     public string? Name { get; set; }
 
-    [Display("Categories", Description = "Filter the result by products that are in all of the following categories")]
+    [Display("Categories", Description = "Filter the result by products that contain any of the following categories")]
     [DataSource(typeof(CategoryDataSourceHandler))]
     public IEnumerable<string>? Categories { get; set; }
 
