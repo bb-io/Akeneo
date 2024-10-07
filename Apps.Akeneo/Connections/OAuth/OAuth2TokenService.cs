@@ -1,7 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
 using Apps.Akeneo.Constants;
-using Apps.Akeneo.Invocables;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Authentication.OAuth2;
 using Blackbird.Applications.Sdk.Common.Invocation;
@@ -9,7 +8,7 @@ using RestSharp;
 
 namespace Apps.Akeneo.Connections.OAuth;
 
-public class OAuth2TokenService : AkeneoInvocable, IOAuth2TokenService
+public class OAuth2TokenService : BaseInvocable, IOAuth2TokenService
 {
     public OAuth2TokenService(InvocationContext invocationContext) : base(invocationContext)
     {
