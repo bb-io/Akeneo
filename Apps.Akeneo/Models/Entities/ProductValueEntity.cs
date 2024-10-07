@@ -7,6 +7,4 @@ public class ProductValueEntity
     public object Data { get; set; }
     
     public string Scope { get; set; }
-    
-    public string AttributeType { get; set; }
 }

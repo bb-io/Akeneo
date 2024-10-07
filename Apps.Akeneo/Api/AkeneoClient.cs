@@ -50,6 +50,23 @@ public class AkeneoClient : BlackBirdRestClient
         return result;
     }
 
+    public async Task<IEnumerable<T>> PaginateOnce<T>(RestRequest request)
+    {
+        var baseUrl = request.Resource;
+        var page = 1;
+        var limit = 100;
+
+        request.Resource = baseUrl.SetQueryParameter("page", page.ToString())
+                .SetQueryParameter("limit", limit.ToString());
+
+        var response = await ExecuteWithErrorHandling<PaginationResponse<T>>(request);
+
+        if (!string.IsNullOrEmpty(response.Error))
+            throw new(response.Error);
+
+        return response.Embedded.Items;
+    }
+
     public async Task<List<T>> PaginateUsingSearchAfter<T>(RestRequest request)
     {
         var result = new List<T>();

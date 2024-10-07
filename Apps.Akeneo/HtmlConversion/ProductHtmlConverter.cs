@@ -10,7 +10,7 @@ public static class ProductHtmlConverter
     private const string ValueNameAttribute = "name";
     private const string ValueScopeAttribute = "scope";
 
-    public static Stream ToHtml(ProductContentEntity product, string locale)
+    public static Stream ToHtml(IContentEntity product, string locale)
     {
         var (doc, body) = PrepareEmptyHtmlDocument();
         product.Values
@@ -56,7 +56,7 @@ public static class ProductHtmlConverter
         return (htmlDoc, bodyNode);
     }
 
-    public static ProductContentEntity UpdateFromHtml(ProductContentEntity product, string locale, Stream fileStream)
+    public static T UpdateFromHtml<T>(T product, string locale, Stream fileStream) where T: IContentEntity
     {
         var doc = new HtmlDocument();
         doc.Load(fileStream);

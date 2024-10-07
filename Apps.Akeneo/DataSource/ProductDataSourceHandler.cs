@@ -16,20 +16,16 @@ public class ProductDataSourceHandler : AkeneoInvocable, IAsyncDataSourceHandler
     public async Task<Dictionary<string, string>> GetDataAsync(DataSourceContext context,
         CancellationToken cancellationToken)
     {
-        var query = new SearchQuery();
-
+        var request = new RestRequest("products-uuid");
+        
         if (!string.IsNullOrEmpty(context.SearchString))
         {
+            var query = new SearchQuery();
             query.Add("name", new QueryOperator { Operator = "CONTAINS", Value = context.SearchString, Locale = "en_US" });
-        }        
+            request.AddQueryParameter("search", query.ToString());
+        }  
 
-        var request = new RestRequest($"products-uuid");
-        request.AddQueryParameter("search", query.ToString());
-
-        var result = await Client.Paginate<ProductContentEntity>(request);
-        return result
-            .Take(40)
-            .ToDictionary(x => x.Uuid,
-                x => x.Values["name"].First(x => x.Locale == "en_US").Data.ToString());
+        var result = await Client.PaginateOnce<ProductContentEntity>(request);
+        return result.ToDictionary(x => x.Uuid, x => x.Values["name"].First(x => x.Locale == "en_US").Data.ToString() ?? "No label for en_US");
     }
 }

@@ -19,15 +19,13 @@ public class LocaleDataSourceHandler : AkeneoInvocable, IAsyncDataSourceHandler
         var query = new SearchQuery();
         query.Add("enabled", new QueryOperator { Operator = "=", Value = true });    
 
-        var request = new RestRequest($"locales");
+        var request = new RestRequest("locales");
         request.AddQueryParameter("search", query.ToString());
 
         var result = await Client.Paginate<LocaleEntity>(request);
         return result
             .Where(x => context.SearchString is null ||
                         x.Code.Contains(context.SearchString, StringComparison.OrdinalIgnoreCase))
-            .Where(x => x.Enabled)
-            .Take(40)
             .ToDictionary(x => x.Code, x => x.Code);
     }
 }

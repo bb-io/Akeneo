@@ -2,7 +2,8 @@ namespace Apps.Akeneo.Models.Entities;
 
 public class CatalogEntity
 {
-    public string Id { get; set; }
-    public bool Enabled { get; set; }
-    public string Name { get; set; }
+    public string Code { get; set; }
+    public string? Parent { get; set; }
+    public DateTime Updated { get; set; }
+    public Dictionary<string, string> Labels { get; set; }
 }

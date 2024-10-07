@@ -21,7 +21,6 @@ using Newtonsoft.Json;
 
 namespace Apps.Akeneo.Actions;
 
-// TODO: Duplicate all these actions also for "Product models" and "Categories" (Categories may not need HTML import/export just simple name update, investigate this)
 [ActionList]
 public class ProductActions : AkeneoInvocable
 {
@@ -42,7 +41,7 @@ public class ProductActions : AkeneoInvocable
         query.Add("enabled", new QueryOperator { Operator = "=", Value = input.Enabled });
         query.Add("updated", new QueryOperator { Operator = ">", Value = input.Updated?.ToString("yyyy-MM-dd HH:mm:ss") });
 
-        var request = new RestRequest($"products-uuid");
+        var request = new RestRequest("products-uuid");
         request.AddQueryParameter("locales", locale.Locale);
         request.AddQueryParameter("search", query.ToString());
 
@@ -52,7 +51,7 @@ public class ProductActions : AkeneoInvocable
         };
     }
 
-    [Action("Get product info", Description = "Get details about specific product")]
+    [Action("Get product info", Description = "Get details about a specific product")]
     public Task<ProductEntity> GetProduct([ActionParameter] ProductRequest input)
     {
         var request = new RestRequest($"/products-uuid/{input.ProductId}");
@@ -68,7 +67,7 @@ public class ProductActions : AkeneoInvocable
         return Client.ExecuteWithErrorHandling(request);
     }
 
-    [Action("Delete product", Description = "Delete specific product")]
+    [Action("Delete product", Description = "Delete a specific product")]
     public Task DeleteProduct([ActionParameter] ProductRequest input)
     {
         var request = new RestRequest($"/products-uuid/{input.ProductId}", Method.Delete);
@@ -90,6 +89,7 @@ public class ProductActions : AkeneoInvocable
         };
     }
 
+    // TODO: We should embed the ID in the HTMl file so that the product input can become optional
     [Action("Update product from HTML", Description = "Update product content from HTML file")]
     public async Task UpdateProductHtml([ActionParameter] ProductRequest input,
         [ActionParameter] LocaleRequest locale, [ActionParameter] FileModel file)
