@@ -29,6 +29,9 @@ Before you can connect you need to make sure that:
 4.  Fill the `Instance URL` field with the url of your Akeneo instance.
 5.  Fill in the `Client ID` and `Client Secret` you copied from Akeneo in the previous section.
 6.  Click _Authorize connection_ and go through the authentication flow in the popup window.
+  - Agree to the privacy policy.
+  - Select the _Own_ level, _Edit_ for locales and _Edit_ for attribute groups.
+  - Confirm the connection
 7.  When you return to Blackbird, confirm that the connection has appeared and the status is _Connected_.
 
 ![1728309237542](image/README/1728309237542.png)
@@ -71,6 +74,12 @@ All products and product models return information about categories. You can use
 ## Example
 
 ![image](https://github.com/user-attachments/assets/9eb04458-1d84-4b6f-9450-97b59b60c729)
+
+The above example shows a very simple manually triggered bird that translates certain products using DeepL.
+
+![1728312887298](image/README/1728312887298.png)
+
+In the above example we respond to new products being updated or created, creating new memoQ projects for them and uploading the translatable files to memoQ.
 
 ## Missing features
 
