@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Net.Mime;
 using Apps.Akeneo.Constants;
 using Apps.Akeneo.HtmlConversion;
@@ -13,11 +12,8 @@ using Blackbird.Applications.Sdk.Common.Actions;
 using Blackbird.Applications.Sdk.Common.Invocation;
 using Blackbird.Applications.SDK.Extensions.FileManagement.Interfaces;
 using Blackbird.Applications.Sdk.Utils.Extensions.Http;
-using Blackbird.Applications.Sdk.Utils.Extensions.String;
-using Blackbird.Applications.Sdk.Utils.Extensions.System;
 using RestSharp;
 using Apps.Akeneo.Models.Queries;
-using Newtonsoft.Json;
 
 namespace Apps.Akeneo.Actions;
 

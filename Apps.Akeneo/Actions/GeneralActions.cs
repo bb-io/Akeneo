@@ -1,18 +1,9 @@
 ﻿using Apps.Akeneo.Invocables;
 using Apps.Akeneo.Models.Entities;
-using Apps.Akeneo.Models.Request.Product;
 using Apps.Akeneo.Models.Response;
-using Apps.Akeneo.Models.Response.Product;
-using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Actions;
 using Blackbird.Applications.Sdk.Common.Invocation;
-using Blackbird.Applications.SDK.Extensions.FileManagement.Interfaces;
 using RestSharp;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Apps.Akeneo.Actions
 {
