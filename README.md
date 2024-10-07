@@ -76,7 +76,7 @@ All products and product models return information about categories. You can use
 
 Akeneo is a huge app with a lot of features. If any of these features are particularly interesting to you, let us know!
 
-In particular we can offer localization capabilities of other aspects of Akeneo like Categories.
+In particular we can offer localization capabilities for other aspects of Akeneo like Categories.
 
 ## Feedback
 
