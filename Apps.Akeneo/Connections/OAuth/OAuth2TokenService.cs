@@ -26,7 +26,7 @@ public class OAuth2TokenService : BaseInvocable, IOAuth2TokenService
             ["grant_type"] = "authorization_code",
             ["code"] = code,
             ["code_identifier"] = state,
-            ["code_challenge"] = GetCodeChallenge(state, values[CredsNames.ClientID]),
+            ["code_challenge"] = GetCodeChallenge(state, values[CredsNames.ClientSecret]),
         };
         var request = new RestRequest(endpoint, Method.Post);
         formParameters.ToList().ForEach(x => request.AddParameter(x.Key, x.Value));
