@@ -13,6 +13,13 @@ Akeneo’s PIM (Product Information Management) solution is designed to ingest, 
 Before you can connect you need to make sure that:
 
 - You have an active Akeneo instance and you have sufficient rights to add apps to it.
+- Go to _Connect_ -> _App Store_ and click on _Create an app_ in the top right corner.
+- Give your app a name, for example "Blackbird".
+- The activate URL is irrelevant for Blackbird, you can give it the Blackbird login URL like _https://de-1.blackbird.io_.
+- For the callback URL fill in _https://bridge.blackbird.io/api/AuthorizationCode_.
+- You will receive a `Client ID` and a `Client Secret`. Copy and save these values for the next steps.
+
+![1728308561748](image/README/1728308561748.png)
 
 ## Connecting
 
@@ -20,30 +27,46 @@ Before you can connect you need to make sure that:
 2.  Click _Add Connection_.
 3.  Name your connection for future reference e.g. 'My Akeneo connection'.
 4.  Fill the `Instance URL` field with the url of your Akeneo instance.
-5.  Click _Authorize connection_ and go through the authentication flow in the popup window.
-6.  When you return to Blackbird, confirm that the connection has appeared and the status is _Connected_.
+5.  Fill in the `Client ID` and `Client Secret` you copied from Akeneo in the previous section.
+6.  Click _Authorize connection_ and go through the authentication flow in the popup window.
+7.  When you return to Blackbird, confirm that the connection has appeared and the status is _Connected_.
 
 ![1727340303813](image/README/1727340303813.png)
 
 ## Actions
 
+### General
+
+- **Get all locales** returns a list of locale codes that are available on this Akeneo instance. *Note*: Akeneo does not have a default locale.
+
 ### Products
 
+-   **Search products** returns a list of products based on filter criteria, for example product name, categories and updated date.
 -   **Delete product** deletes a specific product.
--   **Get product as HTML** returns product values for a specified locale in an HTML format.
 -   **Get product info** returns details about a specific product.
 -   **Update product info** updates details of a specific product.
--   **Search products** returns a list of products based on filter criteria, for example product name.
--   **Search products in catalog** returns a list of products in certain catalog based on filter criteria.
+
+-   **Get product as HTML** returns all localizable product values for a specified locale in an HTML format.
 -   **Update product from HTML** updates product content values from a provided HTML file.
+
+### Product models
+
+-   **Search product models** returns a list of product models based on filter criteria, for example code, categories and updated date.
+-   **Delete product model** deletes a specific product model.
+-   **Get product model info** returns details about a specific product model.
+-   **Update product model info** updates details of a specific product model.
+
+-   **Get product model as HTML** returns all localizable product model values for a specified locale in an HTML format.
+-   **Update product model from HTML** updates product model content values from a provided HTML file.
+
+All products and product models return information about categories. You can use this to make detailed decisions on localization strategies.
 
 ## Events
 
 ### Products
 
--   **On products created** triggers when new products are created.
--   **On products updated** triggers when any products are updated.
--   **On products added to catalog** triggers when any products are added to the catalog.
+-   **On products created or updated** triggers when new products are created or updated. You can filter by locale and categories.
+-   **On product models created or updated** triggers when any product models are created or updated. You can filter by locale and categories.
 
 ## Example
 
@@ -52,6 +75,8 @@ Before you can connect you need to make sure that:
 ## Missing features
 
 Akeneo is a huge app with a lot of features. If any of these features are particularly interesting to you, let us know!
+
+In particular we can offer localization capabilities of other aspects of Akeneo like Categories.
 
 ## Feedback
 
