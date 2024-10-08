@@ -81,21 +81,23 @@ public class ProductActions : AkeneoInvocable
         var htmlStream = ProductHtmlConverter.ToHtml(product, locale.Locale);
         return new()
         {
-            File = await _fileManagementClient.UploadAsync(htmlStream, MediaTypeNames.Text.Html, $"{product.Uuid}.html")
+            File = await _fileManagementClient.UploadAsync(htmlStream, MediaTypeNames.Text.Html, $"{product.Id}.html")
         };
     }
 
-    // TODO: We should embed the ID in the HTMl file so that the product input can become optional
     [Action("Update product from HTML", Description = "Update product content from HTML file")]
-    public async Task UpdateProductHtml([ActionParameter] ProductRequest input,
+    public async Task UpdateProductHtml([ActionParameter] ProductOptionalRequest input,
         [ActionParameter] LocaleRequest locale, [ActionParameter] FileModel file)
     {
         var fileStream = await _fileManagementClient.DownloadAsync(file.File);
-        var product = await GetProductContent(input.ProductId);
+        var htmlDoc = ProductHtmlConverter.LoadHtml(fileStream);
 
-        var updatedProduct = ProductHtmlConverter.UpdateFromHtml(product, locale.Locale, fileStream);
+        var productId = input.ProductId ?? ProductHtmlConverter.GetResourceId(htmlDoc);
+        var product = await GetProductContent(productId);
 
-        var request = new RestRequest($"/products-uuid/{input.ProductId}", Method.Patch)
+        var updatedProduct = ProductHtmlConverter.UpdateFromHtml(product, locale.Locale, htmlDoc);
+
+        var request = new RestRequest($"/products-uuid/{productId}", Method.Patch)
             .WithJsonBody(new UpdateProductRequest(updatedProduct), JsonConfig.Settings);
 
         await Client.ExecuteWithErrorHandling(request);

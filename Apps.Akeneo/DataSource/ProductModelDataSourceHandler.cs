@@ -26,7 +26,7 @@ namespace Apps.Akeneo.DataSource
             }
 
             var result = await Client.PaginateOnce<ProductModelEntity>(request);
-            return result.ToDictionary(x => x.Code, x => x.Code);
+            return result.ToDictionary(x => x.Id, x => x.Id);
         }
     }
 }

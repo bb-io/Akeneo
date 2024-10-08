@@ -12,6 +12,7 @@ public static class ProductHtmlConverter
     private const string ValueNameAttribute = "name";
     private const string ValueScopeAttribute = "scope";
     private const string ValueTypeAttribute = "type";
+    private const string ResourceIdAttribute = "resource_id";
 
     private const string ArrayType = "array";
     private const string TableType = "table";
@@ -26,16 +27,14 @@ public static class ProductHtmlConverter
             .ToList()
             .ForEach(x => ConvertProductValue(x, doc, body));
 
+        doc.DocumentNode.FirstChild.SetAttributeValue(ResourceIdAttribute, product.Id);
         var htmlBytes = Encoding.UTF8.GetBytes(doc.DocumentNode.OuterHtml);
         return new MemoryStream(htmlBytes);
     }
 
 
-    public static T UpdateFromHtml<T>(T product, string locale, Stream fileStream) where T : IContentEntity
+    public static T UpdateFromHtml<T>(T product, string locale, HtmlDocument doc) where T : IContentEntity
     {
-        var doc = new HtmlDocument();
-        doc.Load(fileStream);
-
         var valueNodes = doc.DocumentNode.SelectSingleNode("//body").ChildNodes
             .Where(x => x.Attributes[ValueNameAttribute]?.Value is not null)
             .ToArray();
@@ -60,6 +59,19 @@ public static class ProductHtmlConverter
         }
 
         return product;
+    }
+
+    public static HtmlDocument LoadHtml(Stream fileStream)
+    {
+        var doc = new HtmlDocument();
+        doc.Load(fileStream);
+
+        return doc;
+    }
+    
+    public static string GetResourceId(HtmlDocument doc)
+    {
+        return doc.DocumentNode.FirstChild.Attributes[ResourceIdAttribute]?.Value ?? string.Empty;
     }
 
     private static JArray GetArrayFromHtml(HtmlNode valueNode)

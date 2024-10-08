@@ -26,6 +26,6 @@ public class ProductDataSourceHandler : AkeneoInvocable, IAsyncDataSourceHandler
         }  
 
         var result = await Client.PaginateOnce<ProductContentEntity>(request);
-        return result.ToDictionary(x => x.Uuid, x => x.Values["name"].First(x => x.Locale == "en_US").Data.ToString() ?? "No label for en_US");
+        return result.ToDictionary(x => x.Id, x => x.Values["name"].First(x => x.Locale == "en_US").Data.ToString() ?? "No label for en_US");
     }
 }
