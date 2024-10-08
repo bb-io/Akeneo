@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Apps.Akeneo.Models.Entities
+﻿namespace Apps.Akeneo.Models.Entities
 {
     public interface IContentEntity
     {
+        public string Id { get; set; }
         public Dictionary<string, ProductValueEntity[]> Values { get; set; }
     }
 }

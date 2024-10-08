@@ -4,11 +4,6 @@ using Apps.Akeneo.Models.Queries;
 using Blackbird.Applications.Sdk.Common.Dynamic;
 using Blackbird.Applications.Sdk.Common.Invocation;
 using RestSharp;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Apps.Akeneo.DataSource
 {
@@ -31,7 +26,7 @@ namespace Apps.Akeneo.DataSource
             }
 
             var result = await Client.PaginateOnce<ProductModelEntity>(request);
-            return result.ToDictionary(x => x.Code, x => x.Code);
+            return result.ToDictionary(x => x.Id, x => x.Id);
         }
     }
 }

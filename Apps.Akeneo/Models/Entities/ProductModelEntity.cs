@@ -1,16 +1,12 @@
 ﻿using Blackbird.Applications.Sdk.Common;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace Apps.Akeneo.Models.Entities
 {
     public class ProductModelEntity
     {
-        [Display("Product model code")]
-        public string Code { get; set; }
+        [Display("Product model code"), JsonProperty("code")]
+        public string Id { get; set; }
 
         public string Family { get; set; }
 

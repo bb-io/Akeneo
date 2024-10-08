@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Net.Mime;
 using Apps.Akeneo.Constants;
 using Apps.Akeneo.HtmlConversion;
@@ -13,11 +12,8 @@ using Blackbird.Applications.Sdk.Common.Actions;
 using Blackbird.Applications.Sdk.Common.Invocation;
 using Blackbird.Applications.SDK.Extensions.FileManagement.Interfaces;
 using Blackbird.Applications.Sdk.Utils.Extensions.Http;
-using Blackbird.Applications.Sdk.Utils.Extensions.String;
-using Blackbird.Applications.Sdk.Utils.Extensions.System;
 using RestSharp;
 using Apps.Akeneo.Models.Queries;
-using Newtonsoft.Json;
 
 namespace Apps.Akeneo.Actions;
 
@@ -85,21 +81,23 @@ public class ProductActions : AkeneoInvocable
         var htmlStream = ProductHtmlConverter.ToHtml(product, locale.Locale);
         return new()
         {
-            File = await _fileManagementClient.UploadAsync(htmlStream, MediaTypeNames.Text.Html, $"{product.Uuid}.html")
+            File = await _fileManagementClient.UploadAsync(htmlStream, MediaTypeNames.Text.Html, $"{product.Id}.html")
         };
     }
 
-    // TODO: We should embed the ID in the HTMl file so that the product input can become optional
     [Action("Update product from HTML", Description = "Update product content from HTML file")]
-    public async Task UpdateProductHtml([ActionParameter] ProductRequest input,
+    public async Task UpdateProductHtml([ActionParameter] ProductOptionalRequest input,
         [ActionParameter] LocaleRequest locale, [ActionParameter] FileModel file)
     {
         var fileStream = await _fileManagementClient.DownloadAsync(file.File);
-        var product = await GetProductContent(input.ProductId);
+        var htmlDoc = ProductHtmlConverter.LoadHtml(fileStream);
 
-        var updatedProduct = ProductHtmlConverter.UpdateFromHtml(product, locale.Locale, fileStream);
+        var productId = input.ProductId ?? ProductHtmlConverter.GetResourceId(htmlDoc);
+        var product = await GetProductContent(productId);
 
-        var request = new RestRequest($"/products-uuid/{input.ProductId}", Method.Patch)
+        var updatedProduct = ProductHtmlConverter.UpdateFromHtml(product, locale.Locale, htmlDoc);
+
+        var request = new RestRequest($"/products-uuid/{productId}", Method.Patch)
             .WithJsonBody(new UpdateProductRequest(updatedProduct), JsonConfig.Settings);
 
         await Client.ExecuteWithErrorHandling(request);

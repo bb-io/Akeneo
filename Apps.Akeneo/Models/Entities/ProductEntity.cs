@@ -1,11 +1,12 @@
 using Blackbird.Applications.Sdk.Common;
+using Newtonsoft.Json;
 
 namespace Apps.Akeneo.Models.Entities;
 
 public class ProductEntity
 {
-    [Display("Product ID")]
-    public string Uuid { get; set; }
+    [Display("Product ID"),  JsonProperty("uuid")]
+    public string Id { get; set; }
     
     public bool Enabled { get; set; }
     
