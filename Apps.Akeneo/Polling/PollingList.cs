@@ -1,7 +1,6 @@
 using Apps.Akeneo.Invocables;
 using Apps.Akeneo.Models.Entities;
 using Apps.Akeneo.Models.Queries;
-using Apps.Akeneo.Models.Request;
 using Apps.Akeneo.Models.Response.Product;
 using Apps.Akeneo.Models.Response.ProductModel;
 using Apps.Akeneo.Polling.Models;
@@ -21,7 +20,7 @@ public class PollingList : AkeneoInvocable
     
     [PollingEvent("On products created or updated", "This event triggers when any products are created or updated")]
     public async Task<PollingEventResponse<DateMemory, ListProductResponse>> OnProductsCreatedOrUpdated(
-        PollingEventRequest<DateMemory> input, [PollingEventParameter] ProductFilter filter, [PollingEventParameter] LocaleRequest locale)
+        PollingEventRequest<DateMemory> input, [PollingEventParameter] ProductFilter filter)
     {
         if (input.Memory is null)
         {
@@ -41,7 +40,6 @@ public class PollingList : AkeneoInvocable
         query.Add("updated", new QueryOperator { Operator = ">", Value = input.Memory.LastInteractionDate.ToString("yyyy-MM-dd HH:mm:ss") });
 
         var request = new RestRequest("products-uuid");
-        request.AddQueryParameter("locales", locale.Locale);
         request.AddQueryParameter("search", query.ToString());
 
         var products = await Client.Paginate<ProductEntity>(request);
@@ -74,7 +72,7 @@ public class PollingList : AkeneoInvocable
 
     [PollingEvent("On product models created or updated", "This event triggers when any product models are created or updated")]
     public async Task<PollingEventResponse<DateMemory, ListProductModelResponse>> OnProductModelsCreatedOrUpdated(
-        PollingEventRequest<DateMemory> input, [PollingEventParameter] ProductModelFilter filter, [PollingEventParameter] LocaleRequest locale)
+        PollingEventRequest<DateMemory> input, [PollingEventParameter] ProductModelFilter filter)
     {
         if (input.Memory is null)
         {
@@ -93,7 +91,6 @@ public class PollingList : AkeneoInvocable
         query.Add("updated", new QueryOperator { Operator = ">", Value = input.Memory.LastInteractionDate.ToString("yyyy-MM-dd HH:mm:ss") });
 
         var request = new RestRequest("product-models");
-        request.AddQueryParameter("locales", locale.Locale);
         request.AddQueryParameter("search", query.ToString());
 
         var models = await Client.Paginate<ProductModelEntity>(request);
