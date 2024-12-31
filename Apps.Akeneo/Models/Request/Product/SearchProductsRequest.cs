@@ -19,4 +19,7 @@ public class SearchProductsRequest
 
     [DataSource(typeof(AttributeDataSourceHandler))]
     public IEnumerable<string>? Attributes { get; set; }
+    
+    [Display("Attribute values")]
+    public IEnumerable<string>? AttributeValues { get; set; }
 }

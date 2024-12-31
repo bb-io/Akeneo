@@ -14,6 +14,8 @@ using Blackbird.Applications.SDK.Extensions.FileManagement.Interfaces;
 using Blackbird.Applications.Sdk.Utils.Extensions.Http;
 using RestSharp;
 using Apps.Akeneo.Models.Queries;
+using Blackbird.Applications.Sdk.Common.Exceptions;
+using Newtonsoft.Json.Linq;
 
 namespace Apps.Akeneo.Actions;
 
@@ -47,9 +49,43 @@ public class ProductActions : AkeneoInvocable
             request.AddQueryParameter("attributes", string.Join(',', input.Attributes));
         }
 
+        var products = await Client.Paginate<ProductEntity>(request);
+        
+        if (input.Attributes != null && input.AttributeValues != null)
+        {
+            if (input.Attributes.Count() != input.AttributeValues.Count())
+            {
+                throw new PluginMisconfigurationException(
+                    "Attributes and attribute values should have same elements count");
+            }
+
+            var zipped = input.Attributes.Zip(input.AttributeValues).ToList();
+            foreach (var zippedElement in zipped)
+            {
+                products = products.Where(x =>
+                {
+                    var array = x.Values[zippedElement.First]?.ToObject<List<JObject>>()
+                                ?? new List<JObject>();
+                    
+                    var desiredAttribute = array.FirstOrDefault(x => x["locale"]?.ToString() == locale.Locale);
+                    if (desiredAttribute == null && array.All(x => x["locale"]?.ToString() == null))
+                    {
+                        desiredAttribute = array.FirstOrDefault();
+                    }
+
+                    if (desiredAttribute != null && desiredAttribute["data"]?.ToString() == zippedElement.Second)
+                    {
+                        return true;
+                    }
+                    
+                    return false;
+                }).ToList();
+            }
+        }
+
         return new()
         {
-            Products = await Client.Paginate<ProductEntity>(request)
+            Products = products
         };
     }
 
