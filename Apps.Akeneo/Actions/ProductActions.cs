@@ -46,7 +46,7 @@ public class ProductActions : AkeneoInvocable
 
         if (input.Attributes != null)
         {
-            request.AddQueryParameter("attributes", string.Join(',', input.Attributes));
+            request.AddQueryParameter("attributes", string.Join(',', input.Attributes.Distinct()));
         }
 
         var products = await Client.Paginate<ProductEntity>(request);
@@ -56,7 +56,7 @@ public class ProductActions : AkeneoInvocable
             if (input.Attributes.Count() != input.AttributeValues.Count())
             {
                 throw new PluginMisconfigurationException(
-                    "Attributes and attribute values should have same elements count");
+                    $"Mismatch between the number of attributes ({input.Attributes.Count()}) and attribute values ({input.AttributeValues.Count()}). Both should have the same number of elements.");
             }
 
             var zipped = input.Attributes.Zip(input.AttributeValues).ToList();
@@ -68,7 +68,7 @@ public class ProductActions : AkeneoInvocable
                                 ?? new List<JObject>();
                     
                     var desiredAttribute = array.FirstOrDefault(x => x["locale"]?.ToString() == locale.Locale);
-                    if (desiredAttribute == null && array.All(x => x["locale"]?.ToString() == null))
+                    if (desiredAttribute == null && array.All(x => string.IsNullOrEmpty(x["locale"]?.ToString())))
                     {
                         desiredAttribute = array.FirstOrDefault();
                     }
