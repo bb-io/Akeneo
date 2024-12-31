@@ -16,4 +16,7 @@ public class SearchProductsRequest
 
     [Display("Updated after")]
     public DateTime? Updated { get; set; }
+
+    [DataSource(typeof(AttributeDataSourceHandler))]
+    public IEnumerable<string>? Attributes { get; set; }
 }

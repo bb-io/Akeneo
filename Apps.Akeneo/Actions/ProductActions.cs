@@ -29,7 +29,8 @@ public class ProductActions : AkeneoInvocable
     }
 
     [Action("Search products", Description = "Search for products based on filter criteria")]
-    public async Task<ListProductResponse> SearchProducts([ActionParameter] SearchProductsRequest input, [ActionParameter] LocaleRequest locale)
+    public async Task<ListProductResponse> SearchProducts([ActionParameter] SearchProductsRequest input, 
+        [ActionParameter] LocaleRequest locale)
     {
         var query = new SearchQuery();
         query.Add("name", new QueryOperator { Operator = "CONTAINS", Value = input.Name, Locale = locale.Locale });
@@ -40,6 +41,11 @@ public class ProductActions : AkeneoInvocable
         var request = new RestRequest("products-uuid");
         request.AddQueryParameter("locales", locale.Locale);
         request.AddQueryParameter("search", query.ToString());
+
+        if (input.Attributes != null)
+        {
+            request.AddQueryParameter("attributes", string.Join(',', input.Attributes));
+        }
 
         return new()
         {
