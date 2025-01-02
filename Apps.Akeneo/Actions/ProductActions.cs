@@ -14,6 +14,8 @@ using Blackbird.Applications.SDK.Extensions.FileManagement.Interfaces;
 using Blackbird.Applications.Sdk.Utils.Extensions.Http;
 using RestSharp;
 using Apps.Akeneo.Models.Queries;
+using Blackbird.Applications.Sdk.Common.Exceptions;
+using Newtonsoft.Json.Linq;
 
 namespace Apps.Akeneo.Actions;
 
@@ -29,7 +31,8 @@ public class ProductActions : AkeneoInvocable
     }
 
     [Action("Search products", Description = "Search for products based on filter criteria")]
-    public async Task<ListProductResponse> SearchProducts([ActionParameter] SearchProductsRequest input, [ActionParameter] LocaleRequest locale)
+    public async Task<ListProductResponse> SearchProducts([ActionParameter] SearchProductsRequest input, 
+        [ActionParameter] LocaleRequest locale)
     {
         var query = new SearchQuery();
         query.Add("name", new QueryOperator { Operator = "CONTAINS", Value = input.Name, Locale = locale.Locale });
@@ -41,9 +44,48 @@ public class ProductActions : AkeneoInvocable
         request.AddQueryParameter("locales", locale.Locale);
         request.AddQueryParameter("search", query.ToString());
 
+        if (input.Attributes != null)
+        {
+            request.AddQueryParameter("attributes", string.Join(',', input.Attributes.Distinct()));
+        }
+
+        var products = await Client.Paginate<ProductEntity>(request);
+        
+        if (input.Attributes != null && input.AttributeValues != null)
+        {
+            if (input.Attributes.Count() != input.AttributeValues.Count())
+            {
+                throw new PluginMisconfigurationException(
+                    $"Mismatch between the number of attributes ({input.Attributes.Count()}) and attribute values ({input.AttributeValues.Count()}). Both should have the same number of elements.");
+            }
+
+            var zipped = input.Attributes.Zip(input.AttributeValues).ToList();
+            foreach (var zippedElement in zipped)
+            {
+                products = products.Where(x =>
+                {
+                    var array = x.Values[zippedElement.First]?.ToObject<List<JObject>>()
+                                ?? new List<JObject>();
+                    
+                    var desiredAttribute = array.FirstOrDefault(x => x["locale"]?.ToString() == locale.Locale);
+                    if (desiredAttribute == null && array.All(x => string.IsNullOrEmpty(x["locale"]?.ToString())))
+                    {
+                        desiredAttribute = array.FirstOrDefault();
+                    }
+
+                    if (desiredAttribute != null && desiredAttribute["data"]?.ToString() == zippedElement.Second)
+                    {
+                        return true;
+                    }
+                    
+                    return false;
+                }).ToList();
+            }
+        }
+
         return new()
         {
-            Products = await Client.Paginate<ProductEntity>(request)
+            Products = products
         };
     }
 
