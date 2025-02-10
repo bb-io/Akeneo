@@ -5,8 +5,8 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <Product>Akeneo [Beta]</Product>
-        <Description>Akaneo’s PIM solution enables you to ingest, normalize, enrich, and centralize product information through enterprise-grade data modeling, governance, and workflows.</Description>
-        <Version>1.0.9</Version>
+        <Description>Akeneo’s PIM solution enables you to ingest, normalize, enrich, and centralize product information through enterprise-grade data modeling, governance, and workflows.</Description>
+        <Version>1.0.10</Version>
         <AssemblyName>Apps.Akeneo</AssemblyName>
     </PropertyGroup>
 
