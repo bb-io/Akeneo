@@ -7,13 +7,13 @@ using RestSharp;
 
 namespace Apps.Akeneo.DataSource;
 
-public class ProductDataSourceHandler : AkeneoInvocable, IAsyncDataSourceHandler
+public class ProductDataSourceHandler : AkeneoInvocable, IAsyncDataSourceItemHandler
 {
     public ProductDataSourceHandler(InvocationContext invocationContext) : base(invocationContext)
     {
     }
 
-    public async Task<Dictionary<string, string>> GetDataAsync(DataSourceContext context,
+    public async Task<IEnumerable<DataSourceItem>> GetDataAsync(DataSourceContext context,
         CancellationToken cancellationToken)
     {
         var request = new RestRequest("products-uuid");
@@ -26,6 +26,6 @@ public class ProductDataSourceHandler : AkeneoInvocable, IAsyncDataSourceHandler
         }  
 
         var result = await Client.PaginateOnce<ProductContentEntity>(request);
-        return result.ToDictionary(x => x.Id, x => x.Values["name"].First(x => x.Locale == "en_US").Data.ToString() ?? "No label for en_US");
+        return result.Select(x => new DataSourceItem( x.Id, x.Values["name"].First(x => x.Locale == "en_US").Data.ToString() ?? "No label for en_US"));
     }
 }

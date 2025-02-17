@@ -2,6 +2,7 @@ using System.Net.Mime;
 using Apps.Akeneo.Constants;
 using Apps.Akeneo.Models.Response;
 using Blackbird.Applications.Sdk.Common.Authentication;
+using Blackbird.Applications.Sdk.Common.Exceptions;
 using Blackbird.Applications.Sdk.Utils.Extensions.Sdk;
 using Blackbird.Applications.Sdk.Utils.Extensions.String;
 using Blackbird.Applications.Sdk.Utils.RestSharp;
@@ -40,7 +41,7 @@ public class AkeneoClient : BlackBirdRestClient
             response = await ExecuteWithErrorHandling<PaginationResponse<T>>(request);
 
             if (!string.IsNullOrEmpty(response.Error))
-                throw new(response.Error);
+                throw new PluginApplicationException(response.Error);
 
             result.AddRange(response.Embedded.Items);
 
@@ -62,7 +63,7 @@ public class AkeneoClient : BlackBirdRestClient
         var response = await ExecuteWithErrorHandling<PaginationResponse<T>>(request);
 
         if (!string.IsNullOrEmpty(response.Error))
-            throw new(response.Error);
+            throw new PluginApplicationException(response.Error);
 
         return response.Embedded.Items;
     }
@@ -77,7 +78,7 @@ public class AkeneoClient : BlackBirdRestClient
             response = await ExecuteWithErrorHandling<PaginationResponse<T>>(request);
 
             if (!string.IsNullOrEmpty(response.Error))
-                throw new(response.Error);
+                throw new PluginApplicationException(response.Error);
 
             result.AddRange(response.Embedded.Items);
 
@@ -95,6 +96,6 @@ public class AkeneoClient : BlackBirdRestClient
         var errorMessage = error.Errors is null
             ? error.Message
             : $"{error.Message} {string.Join(" ", error.Errors.Select(x => x.Message))}";
-        return new(errorMessage);
+        return new PluginApplicationException(errorMessage);
     }
 }

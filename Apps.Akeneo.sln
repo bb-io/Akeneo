@@ -5,6 +5,8 @@ VisualStudioVersion = 17.8.34330.188
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Apps.Akeneo", "Apps.Akeneo\Apps.Akeneo.csproj", "{EB25604E-8EBA-464E-BEDF-30EA95395AD3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.Akeneo", "Tests.Akeneo\Tests.Akeneo.csproj", "{AB925391-C77D-42E3-BA89-B7489623EE22}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,8 +17,15 @@ Global
 		{EB25604E-8EBA-464E-BEDF-30EA95395AD3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EB25604E-8EBA-464E-BEDF-30EA95395AD3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EB25604E-8EBA-464E-BEDF-30EA95395AD3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AB925391-C77D-42E3-BA89-B7489623EE22}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AB925391-C77D-42E3-BA89-B7489623EE22}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AB925391-C77D-42E3-BA89-B7489623EE22}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AB925391-C77D-42E3-BA89-B7489623EE22}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1F5BBDD3-F7A9-4487-9A32-A36EF6E27B90}
 	EndGlobalSection
 EndGlobal

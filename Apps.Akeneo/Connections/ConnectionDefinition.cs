@@ -12,7 +12,6 @@ public class ConnectionDefinition : IConnectionDefinition
         {
             Name = "OAuth2",
             AuthenticationType = ConnectionAuthenticationType.OAuth2,
-            ConnectionUsage = ConnectionUsage.Actions,
             ConnectionProperties = new List<ConnectionProperty>
             {
                 new(CredsNames.Url) { DisplayName = "Instance URL" },
@@ -24,7 +23,5 @@ public class ConnectionDefinition : IConnectionDefinition
 
     public IEnumerable<AuthenticationCredentialsProvider> CreateAuthorizationCredentialsProviders(
         Dictionary<string, string> values) =>
-        values.Select(x =>
-                new AuthenticationCredentialsProvider(AuthenticationCredentialsRequestLocation.None, x.Key, x.Value))
-            .ToList();
+        values.Select(x => new AuthenticationCredentialsProvider(x.Key, x.Value)).ToList();
 }

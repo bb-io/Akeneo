@@ -49,8 +49,8 @@ Before you can connect you need to make sure that:
 -   **Get product info** returns details about a specific product.
 -   **Update product info** updates details of a specific product.
 
--   **Get product as HTML** returns all localizable product values for a specified locale in an HTML format.
--   **Update product from HTML** updates product content values from a provided HTML file.
+-   **Download product content** returns all localizable product values for a specified locale in an HTML format (by default). When translated, this file can be used by the **Upload product content** action to upload translations to Akeneo. Optionally this method can also output raw json files of the product structure.
+-   **Upload product content** updates product content values from a translated or otherwise processed file that originated from the action above. Also accepts json files.
 
 ### Product models
 
