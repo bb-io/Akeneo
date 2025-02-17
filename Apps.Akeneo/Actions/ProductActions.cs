@@ -16,6 +16,8 @@ using RestSharp;
 using Apps.Akeneo.Models.Queries;
 using Blackbird.Applications.Sdk.Common.Exceptions;
 using Newtonsoft.Json.Linq;
+using System.Text;
+using Newtonsoft.Json;
 
 namespace Apps.Akeneo.Actions;
 
@@ -114,30 +116,52 @@ public class ProductActions : AkeneoInvocable
 
     #region Html
 
-    [Action("Get product as HTML", Description = "Get product content in HTML format")]
-    public async Task<FileModel> GetProductHtml([ActionParameter] ProductRequest input,
-        [ActionParameter] LocaleRequest locale)
-    {
-        var product = await GetProductContent(input.ProductId);
+    [Action("Download product content", Description = "Get product content in HTML or JSON format (see docs)")]
+    public async Task<FileModel> GetProductHtml([ActionParameter] ProductRequest input, [ActionParameter] LocaleRequest locale, [ActionParameter] OptionalFileTypeHandler fileType)
+    {     
+        if (fileType.FileType == null || fileType.FileType == "html")
+        {
+            var product = await GetProductContent(input.ProductId);
+            var htmlStream = ProductHtmlConverter.ToHtml(product, locale.Locale);
+            return new()
+            {
+                File = await _fileManagementClient.UploadAsync(htmlStream, MediaTypeNames.Text.Html, $"{product.Id}.html")
+            };
+        }
 
-        var htmlStream = ProductHtmlConverter.ToHtml(product, locale.Locale);
+        var response = await GetProductContentRaw(input.ProductId);
+        var jsonBytes = Encoding.UTF8.GetBytes(response.Content);
+        var stream = new MemoryStream(jsonBytes);
+
         return new()
         {
-            File = await _fileManagementClient.UploadAsync(htmlStream, MediaTypeNames.Text.Html, $"{product.Id}.html")
-        };
+            File = await _fileManagementClient.UploadAsync(stream, MediaTypeNames.Application.Json, $"{input.ProductId.Trim()}.json")
+        };        
     }
 
-    [Action("Update product from HTML", Description = "Update product content from HTML file")]
+    [Action("Upload product content", Description = "Update product content from a Blackbird generated HTML or JSON file (see docs)")]
     public async Task UpdateProductHtml([ActionParameter] ProductOptionalRequest input,
         [ActionParameter] LocaleRequest locale, [ActionParameter] FileModel file)
     {
         var fileStream = await _fileManagementClient.DownloadAsync(file.File);
-        var htmlDoc = ProductHtmlConverter.LoadHtml(fileStream);
+        ProductContentEntity updatedProduct;
+        string productId;
 
-        var productId = input.ProductId ?? ProductHtmlConverter.GetResourceId(htmlDoc);
-        var product = await GetProductContent(productId);
+        if(file.File.Name.EndsWith("json"))
+        {
+            var reader = new StreamReader(fileStream);
+            var json = await reader.ReadToEndAsync();
+            updatedProduct = JsonConvert.DeserializeObject<ProductContentEntity>(json);
+            productId = updatedProduct.Id;
+        } else
+        {
+            var htmlDoc = ProductHtmlConverter.LoadHtml(fileStream);
+            productId = input.ProductId ?? ProductHtmlConverter.GetResourceId(htmlDoc);
+            var product = await GetProductContent(productId);
+            updatedProduct = ProductHtmlConverter.UpdateFromHtml(product, locale.Locale, htmlDoc);
+        }
 
-        var updatedProduct = ProductHtmlConverter.UpdateFromHtml(product, locale.Locale, htmlDoc);
+        updatedProduct.Values = updatedProduct.Values.Where(x => x.Value.All(y => y.Locale != null && y.Scope != null)).ToDictionary();
 
         var request = new RestRequest($"/products-uuid/{productId}", Method.Patch)
             .WithJsonBody(new UpdateProductRequest(updatedProduct), JsonConfig.Settings);
@@ -151,5 +175,11 @@ public class ProductActions : AkeneoInvocable
     {
         var request = new RestRequest($"/products-uuid/{productId}");
         return Client.ExecuteWithErrorHandling<ProductContentEntity>(request);
+    }
+
+    private Task<RestResponse> GetProductContentRaw(string productId)
+    {
+        var request = new RestRequest($"/products-uuid/{productId}");
+        return Client.ExecuteWithErrorHandling(request);
     }
 }

@@ -7,13 +7,13 @@ using RestSharp;
 
 namespace Apps.Akeneo.DataSource
 {
-    public class CategoryDataSourceHandler : AkeneoInvocable, IAsyncDataSourceHandler
+    public class CategoryDataSourceHandler : AkeneoInvocable, IAsyncDataSourceItemHandler
     {
         public CategoryDataSourceHandler(InvocationContext invocationContext) : base(invocationContext)
         {
         }
 
-        public async Task<Dictionary<string, string>> GetDataAsync(DataSourceContext context,
+        public async Task<IEnumerable<DataSourceItem>> GetDataAsync(DataSourceContext context,
             CancellationToken cancellationToken)
         {
             var query = new SearchQuery();
@@ -33,7 +33,7 @@ namespace Apps.Akeneo.DataSource
                 .Where(x => !string.IsNullOrEmpty(x.Value))
                 .Where(x => context.SearchString is null ||
                             x.Value.Contains(context.SearchString, StringComparison.OrdinalIgnoreCase))
-                .Take(40).ToDictionary();
+                .Take(40).Select(x => new DataSourceItem(x.Key, x.Value));
         }
     }
 }

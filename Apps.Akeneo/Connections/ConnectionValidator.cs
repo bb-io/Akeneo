@@ -13,11 +13,22 @@ public class ConnectionValidator: IConnectionValidator
         var creds = authenticationCredentialsProviders.ToArray();
         var client = new AkeneoClient(creds);
 
-        await client.ExecuteWithErrorHandling(new("products-uuid"));
-        
-        return new()
+        try
         {
-            IsValid = true
-        };
+            await client.ExecuteWithErrorHandling(new("products-uuid"));
+
+            return new()
+            {
+                IsValid = true
+            };
+        } catch (Exception ex)
+        {
+            return new()
+            {
+                IsValid = false,
+                Message = ex.Message
+            };
+        }
+
     }
 }

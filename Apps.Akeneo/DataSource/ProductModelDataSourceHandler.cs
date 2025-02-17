@@ -7,13 +7,13 @@ using RestSharp;
 
 namespace Apps.Akeneo.DataSource
 {
-    public class ProductModelDataSourceHandler : AkeneoInvocable, IAsyncDataSourceHandler
+    public class ProductModelDataSourceHandler : AkeneoInvocable, IAsyncDataSourceItemHandler
     {
         public ProductModelDataSourceHandler(InvocationContext invocationContext) : base(invocationContext)
         {
         }
 
-        public async Task<Dictionary<string, string>> GetDataAsync(DataSourceContext context,
+        public async Task<IEnumerable<DataSourceItem>> GetDataAsync(DataSourceContext context,
             CancellationToken cancellationToken)
         {
             var request = new RestRequest("product-models");
@@ -26,7 +26,7 @@ namespace Apps.Akeneo.DataSource
             }
 
             var result = await Client.PaginateOnce<ProductModelEntity>(request);
-            return result.ToDictionary(x => x.Id, x => x.Id);
+            return result.Select(x => new DataSourceItem(x.Id, x.Id));
         }
     }
 }

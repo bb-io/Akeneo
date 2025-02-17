@@ -7,13 +7,13 @@ using RestSharp;
 
 namespace Apps.Akeneo.DataSource;
 
-public class FamilyDataSourceHandler : AkeneoInvocable, IAsyncDataSourceHandler
+public class FamilyDataSourceHandler : AkeneoInvocable, IAsyncDataSourceItemHandler
 {
     public FamilyDataSourceHandler(InvocationContext invocationContext) : base(invocationContext)
     {
     }
 
-    public async Task<Dictionary<string, string>> GetDataAsync(DataSourceContext context,
+    public async Task<IEnumerable<DataSourceItem>> GetDataAsync(DataSourceContext context,
         CancellationToken cancellationToken)
     {
         var request = new RestRequest("families");
@@ -26,7 +26,7 @@ public class FamilyDataSourceHandler : AkeneoInvocable, IAsyncDataSourceHandler
         }
 
         var result = await Client.PaginateOnce<FamilyEntity>(request);
-        return result.ToDictionary(x => x.Code, GetFamilyName);
+        return result.Select(x => new DataSourceItem(x.Code, GetFamilyName(x)));
     }
 
     private string GetFamilyName(FamilyEntity familyEntity)
