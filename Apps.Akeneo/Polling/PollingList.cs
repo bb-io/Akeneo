@@ -35,8 +35,17 @@ public class PollingList : AkeneoInvocable
         }
 
         var query = new SearchQuery();
-        query.Add("categories", new QueryOperator { Operator = "IN", Value = filter.Categories });
-        query.Add("enabled", new QueryOperator { Operator = "=", Value = filter.Enabled });
+
+        if (filter.Categories != null && filter.Categories.Any())
+        {
+            query.Add("categories", new QueryOperator { Operator = "IN", Value = filter.Categories });
+        }
+
+        if (filter.Enabled.HasValue)
+        {
+            query.Add("enabled", new QueryOperator { Operator = "=", Value = filter.Enabled });
+        }
+
         query.Add("updated", new QueryOperator { Operator = ">", Value = input.Memory.LastInteractionDate.ToString("yyyy-MM-dd HH:mm:ss") });
 
         var request = new RestRequest("products-uuid");
@@ -87,7 +96,12 @@ public class PollingList : AkeneoInvocable
         }
 
         var query = new SearchQuery();
-        query.Add("categories", new QueryOperator { Operator = "IN", Value = filter.Categories });
+
+        if (filter.Categories != null && filter.Categories.Any())
+        {
+            query.Add("categories", new QueryOperator { Operator = "IN", Value = filter.Categories });
+        }
+
         query.Add("updated", new QueryOperator { Operator = ">", Value = input.Memory.LastInteractionDate.ToString("yyyy-MM-dd HH:mm:ss") });
 
         var request = new RestRequest("product-models");
