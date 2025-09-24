@@ -27,6 +27,9 @@ public class Products : TestBase
 
         var result = await actions.GetProductHtml(new ProductRequest { ProductId = PRODUCT_ID }, new LocaleRequest { Locale = LOCALE }, new OptionalFileTypeHandler { });
 
+        var json = Newtonsoft.Json.JsonConvert.SerializeObject(result);
+        Console.WriteLine(json);
+
         Assert.IsTrue(result.File != null);
     }
 

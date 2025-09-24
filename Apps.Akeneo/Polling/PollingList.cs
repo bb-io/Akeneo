@@ -5,6 +5,7 @@ using Apps.Akeneo.Models.Response.Product;
 using Apps.Akeneo.Models.Response.ProductModel;
 using Apps.Akeneo.Polling.Models;
 using Apps.Akeneo.Polling.Models.Memory;
+using Blackbird.Applications.Sdk.Common.Exceptions;
 using Blackbird.Applications.Sdk.Common.Invocation;
 using Blackbird.Applications.Sdk.Common.Polling;
 using RestSharp;
@@ -49,6 +50,12 @@ public class PollingList : AkeneoInvocable
         query.Add("updated", new QueryOperator { Operator = ">", Value = input.Memory.LastInteractionDate.ToString("yyyy-MM-dd HH:mm:ss") });
 
         var request = new RestRequest("products-uuid");
+
+        var search = query.ToString();
+        if (string.IsNullOrWhiteSpace(search))
+            throw new PluginMisconfigurationException("Search query is empty. Check filters/memory.");
+
+
         request.AddQueryParameter("search", query.ToString());
 
         var products = await Client.Paginate<ProductEntity>(request);
