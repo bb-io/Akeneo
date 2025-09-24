@@ -15,6 +15,7 @@ using Blackbird.Applications.Sdk.Utils.Extensions.Http;
 using Apps.Akeneo.HtmlConversion;
 using Apps.Akeneo.Models;
 using System.Net.Mime;
+using Blackbird.Applications.Sdk.Common.Authentication;
 
 namespace Apps.Akeneo.Actions
 {
@@ -109,6 +110,12 @@ namespace Apps.Akeneo.Actions
         {
             var request = new RestRequest($"/product-models/{modelCode}");
             return Client.ExecuteWithErrorHandling<ProductModelContentEntity>(request);
+        }
+
+        [Action("DEBUG: Get auth data", Description = "Can be used only for debugging purposes.")]
+        public List<AuthenticationCredentialsProvider> GetAuthenticationCredentialsProviders()
+        {
+            return InvocationContext.AuthenticationCredentialsProviders.ToList();
         }
     }
 }
