@@ -20,9 +20,30 @@ namespace Tests.Akeneo
                 {
                     LastInteractionDate = DateTime.UtcNow.AddDays(-1)
                 }
+                //Memory = null
             };
 
-            var result = polling.OnProductsCreatedOrUpdated(request, new ProductFilter { });
+            var result = await polling.OnProductsCreatedOrUpdated(request, new ProductFilter { });
+            var json = Newtonsoft.Json.JsonConvert.SerializeObject(result);
+            Console.WriteLine(json);
+            Assert.IsNotNull(result);
+        }
+
+        [TestMethod]
+        public async Task OnProductModelsCreatedOrUpdated_IsSuccess()
+        {
+            var polling = new PollingList(InvocationContext);
+
+            var request = new PollingEventRequest<DateMemory>
+            {
+                Memory = new DateMemory
+                {
+                    LastInteractionDate = DateTime.UtcNow.AddDays(-1)
+                }
+                //Memory = null
+            };
+
+            var result = await polling.OnProductModelsCreatedOrUpdated(request, new ProductModelFilter { });
             var json = Newtonsoft.Json.JsonConvert.SerializeObject(result);
             Console.WriteLine(json);
             Assert.IsNotNull(result);
