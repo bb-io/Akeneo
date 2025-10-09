@@ -21,17 +21,10 @@ using Newtonsoft.Json;
 
 namespace Apps.Akeneo.Actions;
 
-[ActionList]
-public class ProductActions : AkeneoInvocable
+[ActionList("Products")]
+public class ProductActions(InvocationContext invocationContext, IFileManagementClient fileManagementClient)
+    : AkeneoInvocable(invocationContext)
 {
-    private readonly IFileManagementClient _fileManagementClient;
-
-    public ProductActions(InvocationContext invocationContext, IFileManagementClient fileManagementClient) : base(
-        invocationContext)
-    {
-        _fileManagementClient = fileManagementClient;
-    }
-
     [Action("Search products", Description = "Search for products based on filter criteria")]
     public async Task<ListProductResponse> SearchProducts([ActionParameter] SearchProductsRequest input, 
         [ActionParameter] LocaleRequest locale)
@@ -125,7 +118,7 @@ public class ProductActions : AkeneoInvocable
             var htmlStream = ProductHtmlConverter.ToHtml(product, locale.Locale);
             return new()
             {
-                File = await _fileManagementClient.UploadAsync(htmlStream, MediaTypeNames.Text.Html, $"{product.Id}.html")
+                File = await fileManagementClient.UploadAsync(htmlStream, MediaTypeNames.Text.Html, $"{product.Id}.html")
             };
         }
 
@@ -135,7 +128,7 @@ public class ProductActions : AkeneoInvocable
 
         return new()
         {
-            File = await _fileManagementClient.UploadAsync(stream, MediaTypeNames.Application.Json, $"{input.ProductId.Trim()}.json")
+            File = await fileManagementClient.UploadAsync(stream, MediaTypeNames.Application.Json, $"{input.ProductId.Trim()}.json")
         };        
     }
 
@@ -143,7 +136,7 @@ public class ProductActions : AkeneoInvocable
     public async Task UpdateProductHtml([ActionParameter] ProductOptionalRequest input,
         [ActionParameter] LocaleRequest locale, [ActionParameter] FileModel file)
     {
-        var fileStream = await _fileManagementClient.DownloadAsync(file.File);
+        var fileStream = await fileManagementClient.DownloadAsync(file.File);
         ProductContentEntity updatedProduct;
         string productId;
 
