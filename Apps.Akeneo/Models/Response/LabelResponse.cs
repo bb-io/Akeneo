@@ -2,11 +2,11 @@
 
 namespace Apps.Akeneo.Models.Response;
 
-public class LabelResponse
+public record LabelResponse(string Locale, string Value)
 {
     [Display("Label locale")]
-    public string Locale { get; set; } = string.Empty;
+    public string Locale { get; set; } = Locale;
 
     [Display("Label value")]
-    public string Value { get; set; } = string.Empty;
+    public string Value { get; set; } = Value;
 }

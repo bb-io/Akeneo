@@ -4,8 +4,8 @@ using Blackbird.Applications.Sdk.Common.Dynamic;
 
 namespace Apps.Akeneo.Models.Request.Attribute;
 
-public class UpdateAttributeRequest
+public class AttributeOptionRequest
 {
-    [Display("Attribute group"), DataSource(typeof(AttributeGroupDataSourceHandler))]
-    public string? AttributeGroup { get; set; }
+    [Display("Attribute option"), DataSource(typeof(AttributeOptionDataSourceHandler))]
+    public string AttributeOptionCode { get; set; }
 }

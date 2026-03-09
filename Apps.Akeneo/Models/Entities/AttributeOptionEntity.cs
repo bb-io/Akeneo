@@ -5,7 +5,7 @@ namespace Apps.Akeneo.Models.Entities;
 public class AttributeOptionEntity
 {
     [JsonProperty("code")]
-    public string AttributeCode { get; set; } = string.Empty;
+    public string OptionCode { get; set; } = string.Empty;
 
     [JsonProperty("attribute")]
     public string Attribute { get; set; } = string.Empty;
