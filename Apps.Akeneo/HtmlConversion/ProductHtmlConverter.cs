@@ -60,14 +60,6 @@ public static class ProductHtmlConverter
 
         return product;
     }
-
-    public static HtmlDocument LoadHtml(Stream fileStream)
-    {
-        var doc = new HtmlDocument();
-        doc.Load(fileStream);
-
-        return doc;
-    }
     
     public static string GetResourceId(HtmlDocument doc)
     {

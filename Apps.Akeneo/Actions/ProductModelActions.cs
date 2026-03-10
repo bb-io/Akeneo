@@ -16,6 +16,7 @@ using Apps.Akeneo.HtmlConversion;
 using Apps.Akeneo.Models;
 using System.Net.Mime;
 using Blackbird.Applications.Sdk.Common.Authentication;
+using Apps.Akeneo.Helper;
 
 namespace Apps.Akeneo.Actions;
 
@@ -84,7 +85,7 @@ public class ProductModelActions(InvocationContext invocationContext, IFileManag
         [ActionParameter] LocaleRequest locale, [ActionParameter] FileModel file)
     {
         var fileStream = await fileManagementClient.DownloadAsync(file.File);
-        var htmlDoc = ProductHtmlConverter.LoadHtml(fileStream);
+        var htmlDoc = await ContentDownloader.GetHtmlFromFile(fileStream);
 
         var productId = input.ProductModelCode ?? ProductHtmlConverter.GetResourceId(htmlDoc);
         var productModel = await GetProductModelContent(productId);

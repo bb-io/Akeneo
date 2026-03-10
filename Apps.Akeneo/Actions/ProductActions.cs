@@ -18,6 +18,7 @@ using Blackbird.Applications.Sdk.Common.Exceptions;
 using Newtonsoft.Json.Linq;
 using System.Text;
 using Newtonsoft.Json;
+using Apps.Akeneo.Helper;
 
 namespace Apps.Akeneo.Actions;
 
@@ -110,7 +111,10 @@ public class ProductActions(InvocationContext invocationContext, IFileManagement
     #region Html
 
     [Action("Download product content", Description = "Get product content in HTML or JSON format (see docs)")]
-    public async Task<FileModel> GetProductHtml([ActionParameter] ProductRequest input, [ActionParameter] LocaleRequest locale, [ActionParameter] OptionalFileTypeHandler fileType)
+    public async Task<FileModel> GetProductHtml(
+        [ActionParameter] ProductRequest input, 
+        [ActionParameter] LocaleRequest locale, 
+        [ActionParameter] OptionalFileTypeHandler fileType)
     {     
         if (fileType.FileType == null || fileType.FileType == "html")
         {
@@ -148,7 +152,7 @@ public class ProductActions(InvocationContext invocationContext, IFileManagement
             productId = updatedProduct.Id;
         } else
         {
-            var htmlDoc = ProductHtmlConverter.LoadHtml(fileStream);
+            var htmlDoc = await ContentDownloader.GetHtmlFromFile(fileStream);
             productId = input.ProductId ?? ProductHtmlConverter.GetResourceId(htmlDoc);
             var product = await GetProductContent(productId);
             updatedProduct = ProductHtmlConverter.UpdateFromHtml(product, locale.Locale, htmlDoc);
@@ -164,15 +168,15 @@ public class ProductActions(InvocationContext invocationContext, IFileManagement
 
     #endregion
 
-    private Task<ProductContentEntity> GetProductContent(string productId)
+    private async Task<ProductContentEntity> GetProductContent(string productId)
     {
         var request = new RestRequest($"/products-uuid/{productId}");
-        return Client.ExecuteWithErrorHandling<ProductContentEntity>(request);
+        return await Client.ExecuteWithErrorHandling<ProductContentEntity>(request);
     }
 
-    private Task<RestResponse> GetProductContentRaw(string productId)
+    private async Task<RestResponse> GetProductContentRaw(string productId)
     {
         var request = new RestRequest($"/products-uuid/{productId}");
-        return Client.ExecuteWithErrorHandling(request);
+        return await Client.ExecuteWithErrorHandling(request);
     }
 }

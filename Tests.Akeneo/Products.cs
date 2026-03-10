@@ -1,16 +1,9 @@
-﻿using Apps.Akeneo.Actions;
-using Apps.Akeneo.DataSource;
+﻿using Tests.Akeneo.Base;
 using Apps.Akeneo.Models;
+using Apps.Akeneo.Actions;
 using Apps.Akeneo.Models.Request;
 using Apps.Akeneo.Models.Request.Product;
-using Blackbird.Applications.Sdk.Common.Dynamic;
 using Blackbird.Applications.Sdk.Common.Files;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Tests.Akeneo.Base;
 
 namespace Tests.Akeneo;
 
@@ -21,25 +14,33 @@ public class Products : TestBase
     public const string LOCALE = "en_US";
 
     [TestMethod]
-    public async Task Get_product_as_html_works()
+    public async Task GetProductHtml_IsSuccess()
     {
+        // Arrange
         var actions = new ProductActions(InvocationContext, FileManager);
+        var product = new ProductRequest { ProductId = "005f730c-2e31-49a0-8172-96dc65fd9b20" };
+        var locale = new LocaleRequest { Locale = "de_DE" };
+        var fileType = new OptionalFileTypeHandler { };
 
-        var result = await actions.GetProductHtml(new ProductRequest { ProductId = PRODUCT_ID }, new LocaleRequest { Locale = LOCALE }, new OptionalFileTypeHandler { });
+        // Act
+        var result = await actions.GetProductHtml(product, locale, fileType);
 
-        var json = Newtonsoft.Json.JsonConvert.SerializeObject(result);
-        Console.WriteLine(json);
-
-        Assert.IsTrue(result.File != null);
+        // Assert
+        PrintJsonResult(result);
+        Assert.IsNotNull(result.File);
     }
 
     [TestMethod]
-    public async Task Update_product_from_html_works()
+    public async Task UpdateProductHtml_IsSuccess()
     {
+        // Arrange
         var actions = new ProductActions(InvocationContext, FileManager);
+        var fileReference = new FileReference() { Name = "test.html" };
+        var product = new ProductOptionalRequest { };
+        var locale = new LocaleRequest { Locale = "ja_JP" };
 
-        var fileReference = new FileReference() { Name = "005f730c-2e31-49a0-8172-96dc65fd9b20.html" };
-        await actions.UpdateProductHtml(new ProductOptionalRequest { }, new LocaleRequest { Locale = LOCALE }, new FileModel { File = fileReference });
+        // Act
+        await actions.UpdateProductHtml(product, locale, new FileModel { File = fileReference });
     }
 
     [TestMethod]
