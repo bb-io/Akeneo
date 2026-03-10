@@ -52,8 +52,8 @@ public class ProductModelTests : TestBase
     {
         // Arrange
         var productModel = new ProductModelOptionalRequest { };
-        var locale = new LocaleRequest { Locale = "de_DE" };
-        var file = new FileModel { File = new FileReference { Name = "test.html" } };
+        var locale = new LocaleRequest { Locale = "ja_JP" };
+        var file = new FileModel { File = new FileReference { Name = "test.xlf" } };
 
         // Act
         await _actions.UpdateProductModelHtml(productModel, locale, file);

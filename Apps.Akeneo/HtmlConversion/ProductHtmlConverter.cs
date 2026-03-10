@@ -41,21 +41,35 @@ public static class ProductHtmlConverter
 
         foreach (var valueNode in valueNodes)
         {
-            if (!product.Values.TryGetValue(valueNode.Attributes[ValueNameAttribute].Value, out var value))
-                continue;
+            var attributeName = valueNode.Attributes[ValueNameAttribute].Value;
+            var nodeScope = valueNode.Attributes[ValueScopeAttribute]?.Value;
 
-            var valueEntity = value.FirstOrDefault(x =>
-                x.Locale == locale && x.Scope == valueNode.Attributes[ValueScopeAttribute]?.Value);
-
-            if (valueEntity is null)
-                continue;
-
-            valueEntity.Data = valueNode.Attributes[ValueTypeAttribute]?.Value switch
+            object nodeData = valueNode.Attributes[ValueTypeAttribute]?.Value switch
             {
                 ArrayType => GetArrayFromHtml(valueNode),
                 TableType => GetTableFromHtml(valueNode),
                 _ => valueNode.InnerHtml.Trim().Trim('\"')
             };
+
+            if (!product.Values.ContainsKey(attributeName))
+                product.Values[attributeName] = [];
+
+            var valuesList = product.Values[attributeName];
+            var valueEntity = valuesList.FirstOrDefault(x => x.Locale == locale && x.Scope == nodeScope);
+
+            if (valueEntity != null)
+                valueEntity.Data = nodeData;
+            else
+            {
+                var newValue = new ProductValueEntity
+                {
+                    Locale = locale,
+                    Scope = nodeScope,
+                    Data = nodeData
+                };
+
+                product.Values[attributeName] = valuesList.Append(newValue).ToArray();
+            }
         }
 
         return product;
