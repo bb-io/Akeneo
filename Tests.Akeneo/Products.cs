@@ -37,7 +37,7 @@ public class Products : TestBase
         var actions = new ProductActions(InvocationContext, FileManager);
         var fileReference = new FileReference() { Name = "test.html" };
         var product = new ProductOptionalRequest { };
-        var locale = new LocaleRequest { Locale = "ja_JP" };
+        var locale = new LocaleRequest { Locale = "de_DE" };
 
         // Act
         await actions.UpdateProductHtml(product, locale, new FileModel { File = fileReference });

@@ -20,7 +20,7 @@ public static class ContentDownloader
         }
 
         var doc = new HtmlDocument();
-        doc.Load(html);
+        doc.LoadHtml(html);
 
         return doc;
     }
