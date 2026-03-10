@@ -1,4 +1,5 @@
 ﻿using RestSharp;
+using Apps.Akeneo.Helper;
 using Apps.Akeneo.Constants;
 using Apps.Akeneo.Invocables;
 using Apps.Akeneo.Models.Entities;
@@ -50,11 +51,11 @@ public class AttributeActions(InvocationContext invocationContext) : AkeneoInvoc
 
         if (labelInput.LabelLocales != null)
         {
-            var labelsDict = GenerateLabelsBody(labelInput.LabelLocales, labelInput.LabelValues!);
+            var labelsDict = LabelHelper.GenerateLabelsBody(labelInput.LabelLocales, labelInput.LabelValues!);
             body.Add("labels", labelsDict);
         }
 
-        var request = new RestRequest($"attributes/{input.AttributeCode}", Method.Patch).WithJsonBody(body);
+        var request = new RestRequest($"attributes", Method.Post).WithJsonBody(body);
         await Client.ExecuteWithErrorHandling(request);
 
         return await GetAttribute(new() { AttributeCode = input.AttributeCode });
@@ -75,7 +76,7 @@ public class AttributeActions(InvocationContext invocationContext) : AkeneoInvoc
 
         if (labelInput.LabelLocales != null)
         {
-            var labelsDict = GenerateLabelsBody(labelInput.LabelLocales, labelInput.LabelValues!);
+            var labelsDict = LabelHelper.GenerateLabelsBody(labelInput.LabelLocales, labelInput.LabelValues!);
             body.Add("labels", labelsDict);
         }
 
@@ -118,13 +119,13 @@ public class AttributeActions(InvocationContext invocationContext) : AkeneoInvoc
 
         if (labelInput.LabelLocales != null)
         {
-            var labelsDict = GenerateLabelsBody(labelInput.LabelLocales, labelInput.LabelValues!);
+            var labelsDict = LabelHelper.GenerateLabelsBody(labelInput.LabelLocales, labelInput.LabelValues!);
             body.Add("labels", labelsDict);
         }
 
         var request = new RestRequest(
-            $"attributes/{attributeInput.AttributeCode}/options/{input.AttributeOptionCode}", 
-            Method.Patch)
+            $"attributes/{attributeInput.AttributeCode}/options", 
+            Method.Post)
             .WithJsonBody(body);
         await Client.ExecuteWithErrorHandling(request);
 
@@ -146,7 +147,7 @@ public class AttributeActions(InvocationContext invocationContext) : AkeneoInvoc
 
         if (labelInput.LabelLocales != null)
         {
-            var labelsDict = GenerateLabelsBody(labelInput.LabelLocales, labelInput.LabelValues!);
+            var labelsDict = LabelHelper.GenerateLabelsBody(labelInput.LabelLocales, labelInput.LabelValues!);
             body.Add("labels", labelsDict);
         }
 
@@ -157,19 +158,5 @@ public class AttributeActions(InvocationContext invocationContext) : AkeneoInvoc
         await Client.ExecuteWithErrorHandling(request);
 
         return await GetAttributeOption(attributeInput, optionInput);
-    }
-
-    private static Dictionary<string, string> GenerateLabelsBody(List<string> locales, List<string> values)
-    {
-        var labelsDict = new Dictionary<string, string>();
-
-        for (int i = 0; i < locales.Count; i++)
-        {
-            string locale = locales[i];
-            string value = values[i];
-            labelsDict.Add(locale, value);
-        }
-
-        return labelsDict;
     }
 }

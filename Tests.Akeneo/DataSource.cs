@@ -80,4 +80,18 @@ public class DataSource : TestBase
         PrintDataHandlerResult(result);
         Assert.IsNotNull(result);
     }
+
+    [TestMethod]
+    public async Task CategoryDataSourceHandler_ReturnsCategories()
+    {
+        // Arrange
+        var handler = new CategoryDataSourceHandler(InvocationContext);
+
+        // Act
+        var result = await handler.GetDataAsync(new(), default);
+
+        // Assert
+        PrintDataHandlerResult(result);
+        Assert.IsNotNull(result);
+    }
 }
