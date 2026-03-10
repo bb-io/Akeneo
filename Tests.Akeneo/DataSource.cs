@@ -1,12 +1,7 @@
-﻿using Apps.Akeneo.DataSource;
+﻿using Tests.Akeneo.Base;
+using Apps.Akeneo.DataSource;
+using Apps.Akeneo.Models.Request.Attribute;
 using Blackbird.Applications.Sdk.Common.Dynamic;
-using Blackbird.Applications.Sdk.Common.Invocation;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Tests.Akeneo.Base;
 
 namespace Tests.Akeneo;
 
@@ -27,5 +22,76 @@ public class DataSource : TestBase
         }
 
         Assert.IsTrue(result.Count() > 0);
+    }
+
+    [TestMethod]
+    public async Task AttributeDataSourceHandler_ReturnsAttributes()
+    {
+        // Arrange
+        var handler = new AttributeDataSourceHandler(InvocationContext);
+
+        // Act
+        var result = await handler.GetDataAsync(new(), default);
+
+        // Assert
+        PrintDataHandlerResult(result);
+        Assert.IsNotNull(result);
+    }
+
+    [TestMethod]
+    public async Task AttributeGroupDataSourceHandler_ReturnsAttributeGroups()
+    {
+        // Arrange
+        var handler = new AttributeGroupDataSourceHandler(InvocationContext);
+
+        // Act
+        var result = await handler.GetDataAsync(new() { SearchString = "other" }, default);
+
+        // Assert
+        PrintDataHandlerResult(result);
+        Assert.IsNotNull(result);
+    }
+
+    [TestMethod]
+    public async Task AttributeOptionDataSourceHandler_ReturnsAttributeOptions()
+    {
+        // Arrange
+        var attributeInput = new AttributeRequest { AttributeCode = "mytest" };
+        var handler = new AttributeOptionDataSourceHandler(InvocationContext, attributeInput);
+
+        // Act
+        var result = await handler.GetDataAsync(new(), default);
+
+        // Assert
+        PrintDataHandlerResult(result);
+        Assert.IsNotNull(result);
+    }
+
+    [TestMethod]
+    public async Task LocaleDataSourceHandler_ReturnsLocales()
+    {
+        // Arrange
+        var handler = new LocaleDataSourceHandler(InvocationContext);
+
+        // Act
+        var result = await handler.GetDataAsync(new(), default);
+
+        // Assert
+        PrintDataHandlerResult(result);
+        Assert.IsNotNull(result);
+    }
+
+    [TestMethod]
+    public async Task CategoryDataSourceHandler_ReturnsCategories()
+    {
+        // Arrange
+        var handler = new CategoryDataSourceHandler(InvocationContext);
+
+        // Act
+        var result = await handler.GetDataAsync(new(), default);
+
+        // Assert
+        PrintDataHandlerResult(result);
+        Assert.IsNotNull(result);
     }
 }

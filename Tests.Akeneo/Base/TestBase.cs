@@ -1,8 +1,10 @@
 ﻿using Apps.Akeneo.Constants;
 using Blackbird.Applications.Sdk.Common.Authentication;
+using Blackbird.Applications.Sdk.Common.Dynamic;
 using Blackbird.Applications.Sdk.Common.Invocation;
 using Blackbird.Applications.Sdk.Utils.Extensions.Sdk;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 using RestSharp;
 using RestSharp.Authenticators;
 using System;
@@ -59,6 +61,18 @@ public class TestBase
         request.AddJsonBody(new { grant_type = "password", username, password});
         var response = client.Execute<TokenResponse>(request);
         return creds.Append(new AuthenticationCredentialsProvider("access_token", response.Data.access_token ));
+    }
+
+    protected static void PrintJsonResult(object result)
+    {
+        Console.WriteLine(JsonConvert.SerializeObject(result, Formatting.Indented));
+    }
+
+    protected static void PrintDataHandlerResult(IEnumerable<DataSourceItem> items)
+    {
+        Console.WriteLine($"Count: {items.Count()}");
+        foreach (var item in items)
+            Console.WriteLine($"{item.Value} - {item.DisplayName}");
     }
 }
 

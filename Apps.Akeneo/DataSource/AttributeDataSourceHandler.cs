@@ -9,11 +9,15 @@ namespace Apps.Akeneo.DataSource;
 public class AttributeDataSourceHandler(InvocationContext invocationContext)
     : AkeneoInvocable(invocationContext), IAsyncDataSourceItemHandler
 {
-    public async Task<IEnumerable<DataSourceItem>> GetDataAsync(DataSourceContext context, CancellationToken cancellationToken)
+    public async Task<IEnumerable<DataSourceItem>> GetDataAsync(DataSourceContext context, CancellationToken ct)
     {
         var request = new RestRequest("attributes");
 
         var result = await Client.Paginate<AttributeEntity>(request);
-        return result.Where(x => context.SearchString is null || x.Code.Contains(context.SearchString, StringComparison.OrdinalIgnoreCase)).Select(x => new DataSourceItem(x.Code, x.Code));
+        return result
+            .Where(x => 
+                context.SearchString is null || x.Code.Contains(context.SearchString, StringComparison.OrdinalIgnoreCase))
+            .Select(x => new DataSourceItem(x.Code, x.Code))
+            .ToList();
     }
 }

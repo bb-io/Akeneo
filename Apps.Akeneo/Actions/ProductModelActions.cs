@@ -16,6 +16,7 @@ using Apps.Akeneo.HtmlConversion;
 using Apps.Akeneo.Models;
 using System.Net.Mime;
 using Blackbird.Applications.Sdk.Common.Authentication;
+using Apps.Akeneo.Helper;
 
 namespace Apps.Akeneo.Actions;
 
@@ -24,7 +25,9 @@ public class ProductModelActions(InvocationContext invocationContext, IFileManag
     : AkeneoInvocable(invocationContext)
 {
     [Action("Search product models", Description = "Search for product models based on filter criteria")]
-    public async Task<ListProductModelResponse> SearchProductModels([ActionParameter] SearchProductModelRequest input, [ActionParameter] LocaleRequest locale)
+    public async Task<ListProductModelResponse> SearchProductModels(
+        [ActionParameter] SearchProductModelRequest input, 
+        [ActionParameter] LocaleRequest locale)
     {
         var query = new SearchQuery();
         query.Add("identifier", new QueryOperator { Operator = "CONTAINS", Value = input.Code, Locale = locale.Locale });
@@ -66,8 +69,9 @@ public class ProductModelActions(InvocationContext invocationContext, IFileManag
 
     #region Html
 
-    [Action("Get product model as HTML", Description = "Get product model content in HTML format")]
-    public async Task<FileModel> GetProductModelHtml([ActionParameter] ProductModelRequest input,
+    [Action("Download product model content", Description = "Get product model content")]
+    public async Task<FileModel> GetProductModelHtml(
+        [ActionParameter] ProductModelRequest input,
         [ActionParameter] LocaleRequest locale)
     {
         var productModel = await GetProductModelContent(input.ProductModelCode);
@@ -79,12 +83,14 @@ public class ProductModelActions(InvocationContext invocationContext, IFileManag
         };
     }
 
-    [Action("Update product model from HTML", Description = "Update product model content from HTML file")]
-    public async Task UpdateProductModelHtml([ActionParameter] ProductModelOptionalRequest input,
-        [ActionParameter] LocaleRequest locale, [ActionParameter] FileModel file)
+    [Action("Upload product model content", Description = "Update product model content from a file")]
+    public async Task UpdateProductModelHtml(
+        [ActionParameter] ProductModelOptionalRequest input,
+        [ActionParameter] LocaleRequest locale, 
+        [ActionParameter] FileModel file)
     {
         var fileStream = await fileManagementClient.DownloadAsync(file.File);
-        var htmlDoc = ProductHtmlConverter.LoadHtml(fileStream);
+        var htmlDoc = await ContentDownloader.GetHtmlFromFile(fileStream);
 
         var productId = input.ProductModelCode ?? ProductHtmlConverter.GetResourceId(htmlDoc);
         var productModel = await GetProductModelContent(productId);

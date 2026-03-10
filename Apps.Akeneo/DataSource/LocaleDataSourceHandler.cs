@@ -7,14 +7,10 @@ using RestSharp;
 
 namespace Apps.Akeneo.DataSource;
 
-public class LocaleDataSourceHandler : AkeneoInvocable, IAsyncDataSourceItemHandler
+public class LocaleDataSourceHandler(InvocationContext invocationContext) 
+    : AkeneoInvocable(invocationContext), IAsyncDataSourceItemHandler
 {
-    public LocaleDataSourceHandler(InvocationContext invocationContext) : base(invocationContext)
-    {
-    }
-
-    public async Task<IEnumerable<DataSourceItem>> GetDataAsync(DataSourceContext context,
-        CancellationToken cancellationToken)
+    public async Task<IEnumerable<DataSourceItem>> GetDataAsync(DataSourceContext context, CancellationToken ct)
     {
         var query = new SearchQuery();
         query.Add("enabled", new QueryOperator { Operator = "=", Value = true });    
