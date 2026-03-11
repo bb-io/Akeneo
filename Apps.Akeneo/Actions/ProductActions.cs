@@ -137,8 +137,11 @@ public class ProductActions(InvocationContext invocationContext, IFileManagement
     }
 
     [Action("Upload product content", Description = "Update product content from a Blackbird generated HTML or JSON file (see docs)")]
-    public async Task UpdateProductHtml([ActionParameter] ProductOptionalRequest input,
-        [ActionParameter] LocaleRequest locale, [ActionParameter] FileModel file)
+    public async Task UpdateProductHtml(
+        [ActionParameter] ProductOptionalRequest input,
+        [ActionParameter] LocaleRequest locale,
+        [ActionParameter] OptionalChannelRequest channelInput,
+        [ActionParameter] FileModel file)
     {
         var fileStream = await fileManagementClient.DownloadAsync(file.File);
         ProductContentEntity updatedProduct;
@@ -155,7 +158,7 @@ public class ProductActions(InvocationContext invocationContext, IFileManagement
             var htmlDoc = await ContentDownloader.GetHtmlFromFile(fileStream);
             productId = input.ProductId ?? ProductHtmlConverter.GetResourceId(htmlDoc);
             var product = await GetProductContent(productId);
-            updatedProduct = ProductHtmlConverter.UpdateFromHtml(product, locale.Locale, htmlDoc);
+            updatedProduct = ProductHtmlConverter.UpdateFromHtml(product, locale.Locale, htmlDoc, channelInput.ChannelCode);
         }
 
         updatedProduct.Values = updatedProduct.Values.Where(x => x.Value.All(y => y.Locale != null && y.Scope != null)).ToDictionary();

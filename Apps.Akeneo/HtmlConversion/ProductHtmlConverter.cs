@@ -41,7 +41,7 @@ public static class ProductHtmlConverter
         return new MemoryStream(htmlBytes);
     }
 
-    public static T UpdateFromHtml<T>(T product, string locale, HtmlDocument doc) where T : IContentEntity
+    public static T UpdateFromHtml<T>(T product, string locale, HtmlDocument doc, string? channel) where T : IContentEntity
     {
         var valueNodes = doc.DocumentNode.SelectSingleNode("//body").ChildNodes
             .Where(x => x.Attributes[ValueNameAttribute]?.Value is not null)
@@ -50,7 +50,7 @@ public static class ProductHtmlConverter
         foreach (var valueNode in valueNodes)
         {
             var attributeName = valueNode.Attributes[ValueNameAttribute].Value;
-            var nodeScope = valueNode.Attributes[ValueScopeAttribute]?.Value;
+            var nodeScope = channel ?? valueNode.Attributes[ValueScopeAttribute]?.Value;
 
             object nodeData = valueNode.Attributes[ValueTypeAttribute]?.Value switch
             {

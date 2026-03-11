@@ -84,7 +84,8 @@ public class ProductModelActions(InvocationContext invocationContext, IFileManag
     [Action("Upload product model content", Description = "Update product model content from a file")]
     public async Task UpdateProductModelHtml(
         [ActionParameter] ProductModelOptionalRequest input,
-        [ActionParameter] LocaleRequest locale, 
+        [ActionParameter] LocaleRequest locale,
+        [ActionParameter] OptionalChannelRequest channelInput,
         [ActionParameter] FileModel file)
     {
         var fileStream = await fileManagementClient.DownloadAsync(file.File);
@@ -93,7 +94,11 @@ public class ProductModelActions(InvocationContext invocationContext, IFileManag
         var productId = input.ProductModelCode ?? ProductHtmlConverter.GetResourceId(htmlDoc);
         var productModel = await GetProductModelContent(productId);
 
-        var updatedProduct = ProductHtmlConverter.UpdateFromHtml(productModel, locale.Locale, htmlDoc);
+        var updatedProduct = ProductHtmlConverter.UpdateFromHtml(
+            productModel, 
+            locale.Locale, 
+            htmlDoc, 
+            channelInput.ChannelCode);
 
         var request = new RestRequest($"/product-models/{productId}", Method.Patch)
             .WithJsonBody(new UpdateProductModelRequest(updatedProduct), JsonConfig.Settings);

@@ -37,9 +37,10 @@ public class Products : TestBase
         var fileReference = new FileReference() { Name = "test.html" };
         var product = new ProductOptionalRequest { };
         var locale = new LocaleRequest { Locale = "de_DE" };
+        var channel = new OptionalChannelRequest { ChannelCode = "b2b" };
 
         // Act
-        await actions.UpdateProductHtml(product, locale, new FileModel(fileReference));
+        await actions.UpdateProductHtml(product, locale, channel, new FileModel(fileReference));
     }
 
     [TestMethod]
@@ -67,8 +68,9 @@ public class Products : TestBase
         var fileReference = new FileReference() { Name = "005f730c-2e31-49a0-8172-96dc65fd9b20.json" };
         var productRequest = new ProductOptionalRequest { };
         var localeRequest = new LocaleRequest { Locale = "en_US" };
+        var channel = new OptionalChannelRequest { ChannelCode = "b2b" };
 
         // Act
-        await actions.UpdateProductHtml(productRequest, localeRequest, new FileModel(fileReference));
+        await actions.UpdateProductHtml(productRequest, localeRequest, channel, new FileModel(fileReference));
     }
 }

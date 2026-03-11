@@ -54,10 +54,11 @@ public class ProductModelTests : TestBase
     {
         // Arrange
         var productModel = new ProductModelOptionalRequest { };
-        var locale = new LocaleRequest { Locale = "ja_JP" };
+        var locale = new LocaleRequest { Locale = "de_DE" };
         var file = new FileModel(new FileReference { Name = "test.html" });
+        var channel = new OptionalChannelRequest { ChannelCode = "print" };
 
         // Act
-        await _actions.UpdateProductModelHtml(productModel, locale, file);
+        await _actions.UpdateProductModelHtml(productModel, locale, channel, file);
     }
 }
