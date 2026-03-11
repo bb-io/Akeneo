@@ -115,12 +115,17 @@ public class ProductActions(InvocationContext invocationContext, IFileManagement
         [ActionParameter] ProductRequest input, 
         [ActionParameter] LocaleRequest locale, 
         [ActionParameter] OptionalFileTypeHandler fileType,
-        [ActionParameter] OptionalChannelRequest channelInput)
+        [ActionParameter] OptionalChannelRequest channelInput,
+        [ActionParameter] DownloadProductRequest downloadInput)
     {     
         if (fileType.FileType == null || fileType.FileType == "html")
         {
             var product = await GetProductContent(input.ProductId);
-            var htmlStream = ProductHtmlConverter.ToHtml(product, locale.Locale, channelInput.ChannelCode);
+            var htmlStream = ProductHtmlConverter.ToHtml(
+                product, 
+                locale.Locale, 
+                channelInput.ChannelCode, 
+                downloadInput.IgnoreNonScopable ?? false);
 
             string htmlFileName = input.ProductId.ToFileName("html");
             var htmlFile = await fileManagementClient.UploadAsync(htmlStream, MediaTypeNames.Text.Html, htmlFileName);

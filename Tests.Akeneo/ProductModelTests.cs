@@ -38,11 +38,12 @@ public class ProductModelTests : TestBase
     {
         // Arrange
         var input = new ProductModelRequest { ProductModelCode = "Milwaukee Mens Black No Days Off Hooded Sweatshirt" };
-        var locale = new LocaleRequest { Locale = "de_DE" };
-        var channel = new OptionalChannelRequest { ChannelCode = "b2b" };
+        var locale = new LocaleRequest { Locale = "en_US" };
+        var channel = new OptionalChannelRequest { /*ChannelCode = "b2b"*/ };
+        var downloadInput = new DownloadProductModelRequest { IgnoreNonScopable = true };
 
         // Act
-        var result = await _actions.GetProductModelHtml(input, locale, channel);
+        var result = await _actions.GetProductModelHtml(input, locale, channel, downloadInput);
 
         // Assert
         Console.WriteLine(result.File.Name);
@@ -54,8 +55,8 @@ public class ProductModelTests : TestBase
     {
         // Arrange
         var productModel = new ProductModelOptionalRequest { };
-        var locale = new LocaleRequest { Locale = "de_DE" };
-        var file = new FileModel(new FileReference { Name = "test.html" });
+        var locale = new LocaleRequest { Locale = "fr_FR" };
+        var file = new FileModel { File = new FileReference { Name = "test.html" } };
         var channel = new OptionalChannelRequest { ChannelCode = "print" };
 
         // Act

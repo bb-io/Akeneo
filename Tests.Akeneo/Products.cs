@@ -20,9 +20,10 @@ public class Products : TestBase
         var locale = new LocaleRequest { Locale = "de_DE" };
         var fileType = new OptionalFileTypeHandler { };
         var channel = new OptionalChannelRequest { };
+        var downloadInput = new DownloadProductRequest { IgnoreNonScopable = true };
 
         // Act
-        var result = await actions.GetProductHtml(product, locale, fileType, channel);
+        var result = await actions.GetProductHtml(product, locale, fileType, channel, downloadInput);
 
         // Assert
         PrintJsonResult(result);
@@ -35,12 +36,13 @@ public class Products : TestBase
         // Arrange
         var actions = new ProductActions(InvocationContext, FileManager);
         var fileReference = new FileReference() { Name = "test.html" };
+        var file = new FileModel { File = fileReference };
         var product = new ProductOptionalRequest { };
         var locale = new LocaleRequest { Locale = "de_DE" };
         var channel = new OptionalChannelRequest { ChannelCode = "b2b" };
 
         // Act
-        await actions.UpdateProductHtml(product, locale, channel, new FileModel(fileReference));
+        await actions.UpdateProductHtml(product, locale, channel, file);
     }
 
     [TestMethod]
@@ -52,9 +54,10 @@ public class Products : TestBase
         var fileType = new OptionalFileTypeHandler { FileType = "json" };
         var channel = new OptionalChannelRequest { };
         var actions = new ProductActions(InvocationContext, FileManager);
+        var downloadInput = new DownloadProductRequest { IgnoreNonScopable = true };
 
         // Act
-        var result = await actions.GetProductHtml(productInput, locale, fileType, channel);
+        var result = await actions.GetProductHtml(productInput, locale, fileType, channel, downloadInput);
 
         // Assert
         Assert.IsTrue(result.File != null);
@@ -66,11 +69,12 @@ public class Products : TestBase
         // Arrange
         var actions = new ProductActions(InvocationContext, FileManager);
         var fileReference = new FileReference() { Name = "005f730c-2e31-49a0-8172-96dc65fd9b20.json" };
+        var file = new FileModel { File = fileReference };
         var productRequest = new ProductOptionalRequest { };
         var localeRequest = new LocaleRequest { Locale = "en_US" };
         var channel = new OptionalChannelRequest { ChannelCode = "b2b" };
 
         // Act
-        await actions.UpdateProductHtml(productRequest, localeRequest, channel, new FileModel(fileReference));
+        await actions.UpdateProductHtml(productRequest, localeRequest, channel, file);
     }
 }

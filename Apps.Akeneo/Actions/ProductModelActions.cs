@@ -72,11 +72,17 @@ public class ProductModelActions(InvocationContext invocationContext, IFileManag
     public async Task<FileModel> GetProductModelHtml(
         [ActionParameter] ProductModelRequest input,
         [ActionParameter] LocaleRequest locale,
-        [ActionParameter] OptionalChannelRequest channelInput)
+        [ActionParameter] OptionalChannelRequest channelInput,
+        [ActionParameter] DownloadProductModelRequest downloadInput)
     {
         var productModel = await GetProductModelContent(input.ProductModelCode);
 
-        var htmlStream = ProductHtmlConverter.ToHtml(productModel, locale.Locale, channelInput.ChannelCode);
+        var htmlStream = ProductHtmlConverter.ToHtml(
+            productModel, 
+            locale.Locale, 
+            channelInput.ChannelCode,
+            downloadInput.IgnoreNonScopable ?? false);
+
         var file = await fileManagementClient.UploadAsync(htmlStream, MediaTypeNames.Text.Html, $"{productModel.Id}.html");
         return new FileModel { File = file };
     }

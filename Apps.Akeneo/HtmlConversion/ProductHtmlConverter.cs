@@ -1,6 +1,7 @@
 using System.Text;
 using System.Web;
 using Apps.Akeneo.Models.Entities;
+using Blackbird.Applications.Sdk.Common.Exceptions;
 using HtmlAgilityPack;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -17,7 +18,7 @@ public static class ProductHtmlConverter
     private const string ArrayType = "array";
     private const string TableType = "table";
 
-    public static Stream ToHtml(IContentEntity product, string locale, string? scope)
+    public static Stream ToHtml(IContentEntity product, string locale, string? scope, bool ignoreNonScopable)
     {
         var (doc, body) = PrepareEmptyHtmlDocument();
 
@@ -27,7 +28,11 @@ public static class ProductHtmlConverter
                     kvp.Key,
                     kvp.Value
                         .Where(val => val.Locale == locale)
-                        .Where(val => scope is null || val.Scope == scope)
+                        .Where(val =>
+                            scope is null ||
+                            val.Scope == scope ||
+                            (!ignoreNonScopable && val.Scope == null)
+                        )
                         .ToArray()
                 ))
             .Where(kvp => kvp.Value.Length > 0);
@@ -49,8 +54,22 @@ public static class ProductHtmlConverter
 
         foreach (var valueNode in valueNodes)
         {
-            var attributeName = valueNode.Attributes[ValueNameAttribute].Value;
-            var nodeScope = channel ?? valueNode.Attributes[ValueScopeAttribute]?.Value;
+            var attributeName = valueNode.Attributes[ValueNameAttribute].Value; 
+            var htmlScope = valueNode.Attributes[ValueScopeAttribute]?.Value;
+            var nodeScope = channel ?? htmlScope;
+
+            if (nodeScope != null && product.Values.TryGetValue(attributeName, out var existingValues) && 
+                existingValues.Length > 0)
+            {
+                var isScopable = existingValues.Any(x => x.Scope != null);
+                if (!isScopable)
+                {
+                    throw new PluginMisconfigurationException(
+                        $"The attribute '{attributeName}' is not scopable - it cannot be updated for a specific channel. " +
+                        $"To upload content without these attributes, " +
+                        $"set the 'Ignore global non-scopable attributes' input to true when downloading content");
+                }
+            }
 
             object nodeData = valueNode.Attributes[ValueTypeAttribute]?.Value switch
             {
