@@ -17,21 +17,29 @@ public static class ProductHtmlConverter
     private const string ArrayType = "array";
     private const string TableType = "table";
 
-    public static Stream ToHtml(IContentEntity product, string locale)
+    public static Stream ToHtml(IContentEntity product, string locale, string? scope)
     {
         var (doc, body) = PrepareEmptyHtmlDocument();
-        product.Values
-            .Select(x =>
-                new KeyValuePair<string, ProductValueEntity[]>(x.Key, x.Value.Where(x => x.Locale == locale).ToArray()))
-            .Where(x => x.Value != null)
-            .ToList()
-            .ForEach(x => ConvertProductValue(x, doc, body));
+
+        var filteredValues = product.Values
+            .Select(kvp =>
+                new KeyValuePair<string, ProductValueEntity[]>(
+                    kvp.Key,
+                    kvp.Value
+                        .Where(val => val.Locale == locale)
+                        .Where(val => scope is null || val.Scope == scope)
+                        .ToArray()
+                ))
+            .Where(kvp => kvp.Value.Length > 0);
+
+        foreach (var item in filteredValues)
+            ConvertProductValue(item, doc, body);
 
         doc.DocumentNode.FirstChild.SetAttributeValue(ResourceIdAttribute, product.Id);
+
         var htmlBytes = Encoding.UTF8.GetBytes(doc.DocumentNode.OuterHtml);
         return new MemoryStream(htmlBytes);
     }
-
 
     public static T UpdateFromHtml<T>(T product, string locale, HtmlDocument doc) where T : IContentEntity
     {

@@ -13,7 +13,7 @@ public class AttributeDataSourceHandler(InvocationContext invocationContext)
     {
         var request = new RestRequest("attributes");
 
-        var result = await Client.Paginate<AttributeEntity>(request);
+        var result = await Client.PaginateOnce<AttributeEntity>(request);
         return result
             .Where(x => 
                 context.SearchString is null || x.Code.Contains(context.SearchString, StringComparison.OrdinalIgnoreCase))

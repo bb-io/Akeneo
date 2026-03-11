@@ -4,6 +4,7 @@ using Apps.Akeneo.Models;
 using Apps.Akeneo.Models.Request;
 using Apps.Akeneo.Models.Request.ProductModel;
 using Blackbird.Applications.Sdk.Common.Files;
+using Apps.Akeneo.Models.Request.Channel;
 
 namespace Tests.Akeneo;
 
@@ -38,9 +39,10 @@ public class ProductModelTests : TestBase
         // Arrange
         var input = new ProductModelRequest { ProductModelCode = "Milwaukee Mens Black No Days Off Hooded Sweatshirt" };
         var locale = new LocaleRequest { Locale = "de_DE" };
+        var channel = new OptionalChannelRequest { ChannelCode = "b2b" };
 
         // Act
-        var result = await _actions.GetProductModelHtml(input, locale);
+        var result = await _actions.GetProductModelHtml(input, locale, channel);
 
         // Assert
         Console.WriteLine(result.File.Name);
@@ -53,7 +55,7 @@ public class ProductModelTests : TestBase
         // Arrange
         var productModel = new ProductModelOptionalRequest { };
         var locale = new LocaleRequest { Locale = "ja_JP" };
-        var file = new FileModel { File = new FileReference { Name = "test.xlf" } };
+        var file = new FileModel(new FileReference { Name = "test.html" });
 
         // Act
         await _actions.UpdateProductModelHtml(productModel, locale, file);

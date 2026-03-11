@@ -20,7 +20,7 @@ public class AttributeOptionDataSourceHandler(
             throw new PluginMisconfigurationException("Please specify the attribute code first");
 
         var request = new RestRequest($"attributes/{attributeInput.AttributeCode}/options");
-        var response = await Client.Paginate<AttributeOptionEntity>(request);
+        var response = await Client.PaginateOnce<AttributeOptionEntity>(request);
         return response
             .Where(x => 
                 context.SearchString is null ||

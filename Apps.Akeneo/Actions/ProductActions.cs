@@ -19,6 +19,8 @@ using Newtonsoft.Json.Linq;
 using System.Text;
 using Newtonsoft.Json;
 using Apps.Akeneo.Helper;
+using Apps.Akeneo.Models.Request.Channel;
+using Apps.Akeneo.Extensions;
 
 namespace Apps.Akeneo.Actions;
 
@@ -108,32 +110,30 @@ public class ProductActions(InvocationContext invocationContext, IFileManagement
         return Client.ExecuteWithErrorHandling(request);
     }
 
-    #region Html
-
     [Action("Download product content", Description = "Get product content in HTML or JSON format (see docs)")]
     public async Task<FileModel> GetProductHtml(
         [ActionParameter] ProductRequest input, 
         [ActionParameter] LocaleRequest locale, 
-        [ActionParameter] OptionalFileTypeHandler fileType)
+        [ActionParameter] OptionalFileTypeHandler fileType,
+        [ActionParameter] OptionalChannelRequest channelInput)
     {     
         if (fileType.FileType == null || fileType.FileType == "html")
         {
             var product = await GetProductContent(input.ProductId);
-            var htmlStream = ProductHtmlConverter.ToHtml(product, locale.Locale);
-            return new()
-            {
-                File = await fileManagementClient.UploadAsync(htmlStream, MediaTypeNames.Text.Html, $"{product.Id}.html")
-            };
+            var htmlStream = ProductHtmlConverter.ToHtml(product, locale.Locale, channelInput.ChannelCode);
+
+            string htmlFileName = input.ProductId.ToFileName("html");
+            var htmlFile = await fileManagementClient.UploadAsync(htmlStream, MediaTypeNames.Text.Html, htmlFileName);
+            return new(htmlFile);
         }
 
         var response = await GetProductContentRaw(input.ProductId);
         var jsonBytes = Encoding.UTF8.GetBytes(response.Content);
         var stream = new MemoryStream(jsonBytes);
 
-        return new()
-        {
-            File = await fileManagementClient.UploadAsync(stream, MediaTypeNames.Application.Json, $"{input.ProductId.Trim()}.json")
-        };        
+        string jsonFileName = input.ProductId.ToFileName("json");
+        var jsonFile = await fileManagementClient.UploadAsync(stream, MediaTypeNames.Application.Json, jsonFileName);
+        return new(jsonFile);   
     }
 
     [Action("Upload product content", Description = "Update product content from a Blackbird generated HTML or JSON file (see docs)")]
@@ -165,8 +165,6 @@ public class ProductActions(InvocationContext invocationContext, IFileManagement
 
         await Client.ExecuteWithErrorHandling(request);
     }
-
-    #endregion
 
     private async Task<ProductContentEntity> GetProductContent(string productId)
     {

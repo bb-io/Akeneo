@@ -12,7 +12,7 @@ public class AttributeGroupDataSourceHandler(InvocationContext invocationContext
     public async Task<IEnumerable<DataSourceItem>> GetDataAsync(DataSourceContext context, CancellationToken ct)
     {
         var request = new RestRequest("attribute-groups");
-        var result = await Client.Paginate<AttributeGroupEntity>(request);
+        var result = await Client.PaginateOnce<AttributeGroupEntity>(request);
 
         return result
             .Where(x => 
