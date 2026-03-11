@@ -13,7 +13,7 @@ public class CategoryDataSourceHandler(InvocationContext invocationContext)
     {
         var request = new RestRequest("categories");
 
-        var result = await Client.Paginate<CategoryEntity>(request);
+        var result = await Client.PaginateOnce<CategoryEntity>(request);
         return result                
             .Where(x => 
                 context.SearchString is null ||

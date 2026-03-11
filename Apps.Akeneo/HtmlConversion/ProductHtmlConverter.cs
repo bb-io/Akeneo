@@ -1,6 +1,7 @@
 using System.Text;
 using System.Web;
 using Apps.Akeneo.Models.Entities;
+using Blackbird.Applications.Sdk.Common.Exceptions;
 using HtmlAgilityPack;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -17,23 +18,39 @@ public static class ProductHtmlConverter
     private const string ArrayType = "array";
     private const string TableType = "table";
 
-    public static Stream ToHtml(IContentEntity product, string locale)
+    public static Stream ToHtml(IContentEntity product, string locale, string? scope, bool ignoreNonScopable)
     {
         var (doc, body) = PrepareEmptyHtmlDocument();
-        product.Values
-            .Select(x =>
-                new KeyValuePair<string, ProductValueEntity[]>(x.Key, x.Value.Where(x => x.Locale == locale).ToArray()))
-            .Where(x => x.Value != null)
-            .ToList()
-            .ForEach(x => ConvertProductValue(x, doc, body));
+
+        var filteredValues = product.Values
+            .Where(kvp =>
+            {
+                if (!ignoreNonScopable) 
+                    return true;
+
+                bool isScopable = kvp.Value.Any(x => x.Scope != null);
+                return isScopable;
+            })
+            .Select(kvp =>
+                new KeyValuePair<string, ProductValueEntity[]>(
+                    kvp.Key,
+                    kvp.Value
+                        .Where(val => val.Locale == locale)
+                        .Where(val => scope is null || val.Scope == scope || val.Scope == null)
+                        .ToArray()
+                ))
+            .Where(kvp => kvp.Value.Length > 0);
+
+        foreach (var item in filteredValues)
+            ConvertProductValue(item, doc, body);
 
         doc.DocumentNode.FirstChild.SetAttributeValue(ResourceIdAttribute, product.Id);
+
         var htmlBytes = Encoding.UTF8.GetBytes(doc.DocumentNode.OuterHtml);
         return new MemoryStream(htmlBytes);
     }
 
-
-    public static T UpdateFromHtml<T>(T product, string locale, HtmlDocument doc) where T : IContentEntity
+    public static T UpdateFromHtml<T>(T product, string locale, HtmlDocument doc, string? channel) where T : IContentEntity
     {
         var valueNodes = doc.DocumentNode.SelectSingleNode("//body").ChildNodes
             .Where(x => x.Attributes[ValueNameAttribute]?.Value is not null)
@@ -41,8 +58,22 @@ public static class ProductHtmlConverter
 
         foreach (var valueNode in valueNodes)
         {
-            var attributeName = valueNode.Attributes[ValueNameAttribute].Value;
-            var nodeScope = valueNode.Attributes[ValueScopeAttribute]?.Value;
+            var attributeName = valueNode.Attributes[ValueNameAttribute].Value; 
+            var htmlScope = valueNode.Attributes[ValueScopeAttribute]?.Value;
+            var nodeScope = channel ?? htmlScope;
+
+            if (nodeScope != null && product.Values.TryGetValue(attributeName, out var existingValues) && 
+                existingValues.Length > 0)
+            {
+                var isScopable = existingValues.Any(x => x.Scope != null);
+                if (!isScopable)
+                {
+                    throw new PluginMisconfigurationException(
+                        $"The attribute '{attributeName}' is not scopable - it cannot be updated for a specific channel. " +
+                        $"To upload content without these attributes, " +
+                        $"set the 'Ignore global non-scopable attributes' input to true when downloading content");
+                }
+            }
 
             object nodeData = valueNode.Attributes[ValueTypeAttribute]?.Value switch
             {

@@ -1,22 +1,23 @@
-﻿using Apps.Akeneo.Invocables;
+﻿using Apps.Akeneo.Constants;
+using Apps.Akeneo.Helper;
+using Apps.Akeneo.HtmlConversion;
+using Apps.Akeneo.Invocables;
+using Apps.Akeneo.Models;
 using Apps.Akeneo.Models.Entities;
 using Apps.Akeneo.Models.Queries;
-using Apps.Akeneo.Models.Request.Product;
 using Apps.Akeneo.Models.Request;
-using Blackbird.Applications.Sdk.Common;
-using Blackbird.Applications.Sdk.Common.Actions;
-using Blackbird.Applications.Sdk.Common.Invocation;
-using Blackbird.Applications.SDK.Extensions.FileManagement.Interfaces;
-using RestSharp;
+using Apps.Akeneo.Models.Request.Channel;
+using Apps.Akeneo.Models.Request.Product;
 using Apps.Akeneo.Models.Request.ProductModel;
 using Apps.Akeneo.Models.Response.ProductModel;
-using Apps.Akeneo.Constants;
-using Blackbird.Applications.Sdk.Utils.Extensions.Http;
-using Apps.Akeneo.HtmlConversion;
-using Apps.Akeneo.Models;
-using System.Net.Mime;
+using Blackbird.Applications.Sdk.Common;
+using Blackbird.Applications.Sdk.Common.Actions;
 using Blackbird.Applications.Sdk.Common.Authentication;
-using Apps.Akeneo.Helper;
+using Blackbird.Applications.Sdk.Common.Invocation;
+using Blackbird.Applications.Sdk.Utils.Extensions.Http;
+using Blackbird.Applications.SDK.Extensions.FileManagement.Interfaces;
+using RestSharp;
+using System.Net.Mime;
 
 namespace Apps.Akeneo.Actions;
 
@@ -67,26 +68,30 @@ public class ProductModelActions(InvocationContext invocationContext, IFileManag
         return Client.ExecuteWithErrorHandling(request);
     }
 
-    #region Html
-
     [Action("Download product model content", Description = "Get product model content")]
     public async Task<FileModel> GetProductModelHtml(
         [ActionParameter] ProductModelRequest input,
-        [ActionParameter] LocaleRequest locale)
+        [ActionParameter] LocaleRequest locale,
+        [ActionParameter] OptionalChannelRequest channelInput,
+        [ActionParameter] DownloadProductModelRequest downloadInput)
     {
         var productModel = await GetProductModelContent(input.ProductModelCode);
 
-        var htmlStream = ProductHtmlConverter.ToHtml(productModel, locale.Locale);
-        return new()
-        {
-            File = await fileManagementClient.UploadAsync(htmlStream, MediaTypeNames.Text.Html, $"{productModel.Id}.html")
-        };
+        var htmlStream = ProductHtmlConverter.ToHtml(
+            productModel, 
+            locale.Locale, 
+            channelInput.ChannelCode,
+            downloadInput.IgnoreNonScopable ?? false);
+
+        var file = await fileManagementClient.UploadAsync(htmlStream, MediaTypeNames.Text.Html, $"{productModel.Id}.html");
+        return new FileModel { File = file };
     }
 
     [Action("Upload product model content", Description = "Update product model content from a file")]
     public async Task UpdateProductModelHtml(
         [ActionParameter] ProductModelOptionalRequest input,
-        [ActionParameter] LocaleRequest locale, 
+        [ActionParameter] LocaleRequest locale,
+        [ActionParameter] OptionalChannelRequest channelInput,
         [ActionParameter] FileModel file)
     {
         var fileStream = await fileManagementClient.DownloadAsync(file.File);
@@ -95,15 +100,17 @@ public class ProductModelActions(InvocationContext invocationContext, IFileManag
         var productId = input.ProductModelCode ?? ProductHtmlConverter.GetResourceId(htmlDoc);
         var productModel = await GetProductModelContent(productId);
 
-        var updatedProduct = ProductHtmlConverter.UpdateFromHtml(productModel, locale.Locale, htmlDoc);
+        var updatedProduct = ProductHtmlConverter.UpdateFromHtml(
+            productModel, 
+            locale.Locale, 
+            htmlDoc, 
+            channelInput.ChannelCode);
 
         var request = new RestRequest($"/product-models/{productId}", Method.Patch)
             .WithJsonBody(new UpdateProductModelRequest(updatedProduct), JsonConfig.Settings);
 
         await Client.ExecuteWithErrorHandling(request);
     }
-
-    #endregion
 
     private Task<ProductModelContentEntity> GetProductModelContent(string modelCode)
     {

@@ -94,4 +94,18 @@ public class DataSource : TestBase
         PrintDataHandlerResult(result);
         Assert.IsNotNull(result);
     }
+
+    [TestMethod]
+    public async Task ChannelDataSourceHandler_ReturnsChannels()
+    {
+        // Arrange
+        var handler = new ChannelDataSourceHandler(InvocationContext);
+
+        // Act
+        var result = await handler.GetDataAsync(new(), default);
+
+        // Assert
+        PrintDataHandlerResult(result);
+        Assert.IsNotNull(result);
+    }
 }
