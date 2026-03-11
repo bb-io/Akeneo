@@ -23,16 +23,20 @@ public static class ProductHtmlConverter
         var (doc, body) = PrepareEmptyHtmlDocument();
 
         var filteredValues = product.Values
+            .Where(kvp =>
+            {
+                if (!ignoreNonScopable) 
+                    return true;
+
+                bool isScopable = kvp.Value.Any(x => x.Scope != null);
+                return isScopable;
+            })
             .Select(kvp =>
                 new KeyValuePair<string, ProductValueEntity[]>(
                     kvp.Key,
                     kvp.Value
                         .Where(val => val.Locale == locale)
-                        .Where(val =>
-                            scope is null ||
-                            val.Scope == scope ||
-                            (!ignoreNonScopable && val.Scope == null)
-                        )
+                        .Where(val => scope is null || val.Scope == scope || val.Scope == null)
                         .ToArray()
                 ))
             .Where(kvp => kvp.Value.Length > 0);
