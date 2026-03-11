@@ -78,7 +78,7 @@ public class ProductModelActions(InvocationContext invocationContext, IFileManag
 
         var htmlStream = ProductHtmlConverter.ToHtml(productModel, locale.Locale, channelInput.ChannelCode);
         var file = await fileManagementClient.UploadAsync(htmlStream, MediaTypeNames.Text.Html, $"{productModel.Id}.html");
-        return new(file);
+        return new FileModel { File = file };
     }
 
     [Action("Upload product model content", Description = "Update product model content from a file")]

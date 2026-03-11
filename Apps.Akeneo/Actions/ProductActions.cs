@@ -124,7 +124,7 @@ public class ProductActions(InvocationContext invocationContext, IFileManagement
 
             string htmlFileName = input.ProductId.ToFileName("html");
             var htmlFile = await fileManagementClient.UploadAsync(htmlStream, MediaTypeNames.Text.Html, htmlFileName);
-            return new(htmlFile);
+            return new FileModel { File = htmlFile };
         }
 
         var response = await GetProductContentRaw(input.ProductId);
@@ -133,7 +133,7 @@ public class ProductActions(InvocationContext invocationContext, IFileManagement
 
         string jsonFileName = input.ProductId.ToFileName("json");
         var jsonFile = await fileManagementClient.UploadAsync(stream, MediaTypeNames.Application.Json, jsonFileName);
-        return new(jsonFile);   
+        return new FileModel { File = jsonFile };
     }
 
     [Action("Upload product content", Description = "Update product content from a Blackbird generated HTML or JSON file (see docs)")]
