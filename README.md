@@ -42,13 +42,30 @@ Before you can connect you need to make sure that:
 
 - **Get all locales** returns a list of locale codes that are available on this Akeneo instance. *Note*: Akeneo does not have a default locale.
 
+### Attributes
+
+-	**Search attributes** returns a list of attributes.
+-	**Get attribute** returns an attribute by its code.
+-	**Create attribute** creates an attribute.
+-	**Update attribute** updates an existing attribute.
+-	**Search attribute options** returns a list of attribute options.
+-	**Get attribute option** returns an attribute option by attribute code.
+-	**Create attribute option** createa an attribute option.
+-	**Update attribute option** updates an existing attribute option.
+
+### Categories
+
+-	**Search categories** returns a list of categories.
+-	**Get category** returns a category by its code.
+-	**Create category** creates a category.
+-	**Update category** updates an existing category.
+
 ### Products
 
 -   **Search products** returns a list of products based on filter criteria, for example product name, categories and updated date.
 -   **Delete product** deletes a specific product.
 -   **Get product info** returns details about a specific product.
 -   **Update product info** updates details of a specific product.
-
 -   **Download product content** returns all localizable product values for a specified locale in an HTML format (by default). When translated, this file can be used by the **Upload product content** action to upload translations to Akeneo. Optionally this method can also output raw json files of the product structure.
 -   **Upload product content** updates product content values from a translated or otherwise processed file that originated from the action above. Also accepts json files.
 
@@ -58,9 +75,8 @@ Before you can connect you need to make sure that:
 -   **Delete product model** deletes a specific product model.
 -   **Get product model info** returns details about a specific product model.
 -   **Update product model info** updates details of a specific product model.
-
--   **Get product model as HTML** returns all localizable product model values for a specified locale in an HTML format.
--   **Update product model from HTML** updates product model content values from a provided HTML file.
+-   **Download product model content** returns all localizable product model values for a specified locale in an HTML format.
+-   **Upload product model content** updates product model content values from a provided file.
 
 All products and product models return information about categories. You can use this to make detailed decisions on localization strategies.
 
