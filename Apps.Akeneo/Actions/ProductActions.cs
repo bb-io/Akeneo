@@ -29,14 +29,20 @@ public class ProductActions(InvocationContext invocationContext, IFileManagement
     : AkeneoInvocable(invocationContext)
 {
     [Action("Search products", Description = "Search for products based on filter criteria")]
-    public async Task<ListProductResponse> SearchProducts([ActionParameter] SearchProductsRequest input, 
+    public async Task<ListProductResponse> SearchProducts(
+        [ActionParameter] SearchProductsRequest input, 
         [ActionParameter] LocaleRequest locale)
     {
+        input.ValidateDates();
+
         var query = new SearchQuery();
         query.Add("name", new QueryOperator { Operator = "CONTAINS", Value = input.Name, Locale = locale.Locale });
         query.Add("categories", new QueryOperator { Operator = "IN", Value = input.Categories });
         query.Add("enabled", new QueryOperator { Operator = "=", Value = input.Enabled });
-        query.Add("updated", new QueryOperator { Operator = ">", Value = input.Updated?.ToString("yyyy-MM-dd HH:mm:ss") });
+        query.AddDateBefore("updated", input.UpdatedBefore);
+        query.AddDateAfter("updated", input.UpdatedAfter);
+        query.AddDateBefore("created", input.CreatedBefore);
+        query.AddDateAfter("created", input.CreatedAfter);
 
         var request = new RestRequest("products-uuid");
         request.AddQueryParameter("locales", locale.Locale);

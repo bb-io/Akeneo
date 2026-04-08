@@ -10,7 +10,7 @@ public class GeneralActionsTests : TestBase
 	public async Task GetAllLocales_ReturnsLocales()
 	{
 		// Arrange
-		var actions = new GeneralActions(InvocationContext);
+		var actions = new LocaleActions(InvocationContext);
 
 		// Act
 		var result = await actions.GetAllLocales();

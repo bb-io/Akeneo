@@ -4,21 +4,43 @@ namespace Apps.Akeneo.Models.Queries
 {
     public class SearchQuery
     {
-        private Dictionary<string, IEnumerable<QueryOperator>> _queries;
-        public SearchQuery() 
-        {
-            _queries = new Dictionary<string, IEnumerable<QueryOperator>>();
-        }
+        private const string AkeneoDateFormat = "yyyy-MM-dd HH:mm:ss";
+        private readonly Dictionary<string, List<QueryOperator>> _queries = [];
 
-        public void Add(string key, QueryOperator op) 
+        public void Add(string key, QueryOperator op)
         {
             if (op.Value != null)
             {
-                _queries.Add(key, new List<QueryOperator> { op });
+                EnsureKeyExists(key);
+                _queries[key].Add(op);
             }
         }
 
-        public string ToString()
+        public void AddDateAfter(string key, DateTime? after)
+        {
+            if (after.HasValue)
+            {
+                EnsureKeyExists(key);
+                _queries[key].Add(new QueryOperator { Operator = ">", Value = after.Value.ToString(AkeneoDateFormat) });
+            }
+        }
+
+        public void AddDateBefore(string key, DateTime? before)
+        {
+            if (before.HasValue)
+            {
+                EnsureKeyExists(key);
+                _queries[key].Add(new QueryOperator { Operator = "<", Value = before.Value.ToString(AkeneoDateFormat) });
+            }
+        }
+
+        private void EnsureKeyExists(string key)
+        {
+            if (!_queries.ContainsKey(key))
+                _queries[key] = [];
+        }
+
+        public override string ToString()
         {
             return JsonConvert.SerializeObject(_queries, new JsonSerializerSettings
             {

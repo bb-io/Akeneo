@@ -30,10 +30,15 @@ public class ProductModelActions(InvocationContext invocationContext, IFileManag
         [ActionParameter] SearchProductModelRequest input, 
         [ActionParameter] LocaleRequest locale)
     {
+        input.ValidateDates();
+
         var query = new SearchQuery();
         query.Add("identifier", new QueryOperator { Operator = "CONTAINS", Value = input.Code, Locale = locale.Locale });
         query.Add("categories", new QueryOperator { Operator = "IN", Value = input.Categories });
-        query.Add("updated", new QueryOperator { Operator = ">", Value = input.Updated?.ToString("yyyy-MM-dd HH:mm:ss") });
+        query.AddDateBefore("updated", input.UpdatedBefore);
+        query.AddDateAfter("updated", input.UpdatedAfter);
+        query.AddDateBefore("created", input.CreatedBefore);
+        query.AddDateAfter("created", input.CreatedAfter);
 
         var request = new RestRequest("product-models");
         request.AddQueryParameter("locales", locale.Locale);
