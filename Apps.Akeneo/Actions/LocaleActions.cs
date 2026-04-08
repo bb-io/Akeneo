@@ -8,7 +8,7 @@ using RestSharp;
 namespace Apps.Akeneo.Actions;
 
 [ActionList("Locales")]
-public class GeneralActions(InvocationContext invocationContext) : AkeneoInvocable(invocationContext)
+public class LocaleActions(InvocationContext invocationContext) : AkeneoInvocable(invocationContext)
 {
     [Action("Get all locales", Description = "Returns a list of language codes that are enabled on the Akeneo instance")]
     public async Task<LocalesResponse> GetAllLocales()
