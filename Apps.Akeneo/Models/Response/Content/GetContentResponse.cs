@@ -25,10 +25,10 @@ public record GetContentResponse : IDownloadContentInput
     [Display("Updated at")]
     public DateTime? Updated { get; set; }
 
-    public GetContentResponse(ProductContentEntity productEntity)
+    public GetContentResponse(ProductContentEntity productEntity, string locale)
     {
         ContentId = productEntity.Id;
-        ContentName = productEntity.Values["name"].First(x => x.Locale == "en_US").Data.ToString();
+        ContentName = productEntity.Values["name"].FirstOrDefault(x => x.Locale == locale)?.Data.ToString();
         ContentType = ContentTypeConstants.Product;
         Family = productEntity.Family;
         Created = productEntity.Created;

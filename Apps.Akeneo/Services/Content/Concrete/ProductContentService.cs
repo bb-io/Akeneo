@@ -35,7 +35,7 @@ public class ProductContentService(InvocationContext invocationContext, IFileMan
         request.AddQueryParameter("search", query.ToString());
 
         var products = await Client.Paginate<ProductContentEntity>(request);
-        return new(products.Select(x => new GetContentResponse(x)).ToList());
+        return new(products.Select(x => new GetContentResponse(x, locale)).ToList());
     }
 
     public async Task<SearchContentResponse> SearchContentMinimal(string locale, string? nameContains)
@@ -48,7 +48,7 @@ public class ProductContentService(InvocationContext invocationContext, IFileMan
         request.AddQueryParameter("search", query.ToString());
 
         var products = await Client.PaginateOnce<ProductContentEntity>(request);
-        return new(products.Select(x => new GetContentResponse(x)).ToList());
+        return new(products.Select(x => new GetContentResponse(x, locale)).ToList());
     }
 
     public async Task<FileReference> DownloadContent(

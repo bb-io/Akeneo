@@ -116,12 +116,12 @@ public class DataSource : TestBase
     public async Task ContentDataSourceHandler_ReturnsContentItems()
     {
         // Arrange
-        var locale = new LocaleRequest { Locale = "en_US" };
+        var locale = new LocaleRequest { Locale = "fr_FR" };
         var contentType = new ContentRequest { ContentType = ContentTypeConstants.Product };
         var handler = new ContentDataSourceHandler(InvocationContext, contentType, locale);
 
         // Act
-        var result = await handler.GetDataAsync(new(), default);
+        var result = await handler.GetDataAsync(new() { SearchString = "test" } , default);
 
         // Assert
         PrintDataHandlerResult(result);
