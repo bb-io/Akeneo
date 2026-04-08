@@ -15,6 +15,7 @@ public class ProductModelContentService(InvocationContext invocationContext, IFi
     public async Task<SearchContentResponse> SearchContent(SearchContentServiceInput input)
     {
         var query = new SearchQuery();
+        query.Add("identifier", new QueryOperator { Operator = "CONTAINS", Value = input.NameContains, Locale = input.Locale });
         query.AddDateAfter("created", input.CreatedAfter);
         query.AddDateAfter("updated", input.UpdatedAfter);
         query.AddDateBefore("created", input.CreatedBefore);

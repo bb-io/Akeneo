@@ -15,10 +15,10 @@ public class ContentTests : TestBase
     public async Task SearchContent_ReturnsContent()
     {
         // Arrange
-        var contentTypesInput = new ContentTypesRequest { ContentTypes = [ContentTypeConstants.Product] };
+        var contentTypesInput = new ContentTypesRequest { ContentTypes = [ContentTypeConstants.ProductModel] };
         var searchInput = new SearchContentRequest
         {
-            CreatedAfter = DateTime.UtcNow - TimeSpan.FromHours(1),
+            NameContains = "Whitfield 5-Piece Dark Brown Metal Outdoor Patio Round Fire Pit"
         };
         var localeInput = new LocaleRequest { Locale = "en_US" };
 

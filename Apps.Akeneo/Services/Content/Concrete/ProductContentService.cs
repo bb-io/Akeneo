@@ -15,7 +15,7 @@ public class ProductContentService(InvocationContext invocationContext, IFileMan
     public async Task<SearchContentResponse> SearchContent(SearchContentServiceInput input)
     {
         var query = new SearchQuery();
-        query.Add("enabled", new QueryOperator { Operator = "=", Value = input.IsEnabled });
+        query.Add("name", new QueryOperator { Operator = "CONTAINS", Value = input.NameContains, Locale = input.Locale });
         query.AddDateAfter("created", input.CreatedAfter);
         query.AddDateAfter("updated", input.UpdatedAfter);
         query.AddDateBefore("created", input.CreatedBefore);
@@ -25,7 +25,7 @@ public class ProductContentService(InvocationContext invocationContext, IFileMan
         request.AddQueryParameter("locales", input.Locale);
         request.AddQueryParameter("search", query.ToString());
 
-        var products = await Client.Paginate<ProductEntity>(request);
+        var products = await Client.Paginate<ProductContentEntity>(request);
         return new(products.Select(x => new GetContentResponse(x)).ToList());
     }
 }

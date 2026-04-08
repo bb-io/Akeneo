@@ -5,8 +5,8 @@ namespace Apps.Akeneo.Models.Request.Content;
 
 public class SearchContentRequest : ICreatedDateFilter, IUpdatedDateFilter
 {
-    [Display("Is enabled?", Description = "Default is true")]
-    public bool? IsEnabled { get; set; }
+    [Display("Name contains")]
+    public string? NameContains { get; set; }
 
     [Display("Updated after")]
     public DateTime? UpdatedAfter { get; set; }

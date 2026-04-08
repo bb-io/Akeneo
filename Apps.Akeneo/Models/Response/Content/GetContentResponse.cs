@@ -10,6 +10,9 @@ public record GetContentResponse : IDownloadContentInput
     [Display("Content ID")]
     public string ContentId { get; set; }
 
+    [Display("Content name")]
+    public string? ContentName { get; set; }
+
     [Display("Content type")]
     public string ContentType { get; set; }
 
@@ -22,9 +25,10 @@ public record GetContentResponse : IDownloadContentInput
     [Display("Updated at")]
     public DateTime? Updated { get; set; }
 
-    public GetContentResponse(ProductEntity productEntity)
+    public GetContentResponse(ProductContentEntity productEntity)
     {
         ContentId = productEntity.Id;
+        ContentName = productEntity.Values["name"].First(x => x.Locale == "en_US").Data.ToString();
         ContentType = ContentTypeConstants.Product;
         Family = productEntity.Family;
         Created = productEntity.Created;
@@ -34,6 +38,7 @@ public record GetContentResponse : IDownloadContentInput
     public GetContentResponse(ProductModelEntity productModelEntity)
     {
         ContentId = productModelEntity.Id;
+        ContentName = productModelEntity.Id;
         ContentType = ContentTypeConstants.ProductModel;
         Family = productModelEntity.Family;
         Created = productModelEntity.Created;

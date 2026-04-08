@@ -7,6 +7,7 @@ namespace Apps.Akeneo.Models.Request.ProductModel;
 
 public class SearchProductModelRequest : ICreatedDateFilter, IUpdatedDateFilter
 {
+    [Display("Code contains")]
     public string? Code { get; set; }
 
     [Display("Categories", Description = "Filter the result by product models that contain any of the following categories")]
