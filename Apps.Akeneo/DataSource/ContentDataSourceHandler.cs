@@ -20,7 +20,10 @@ public class ContentDataSourceHandler(
     public async Task<IEnumerable<DataSourceItem>> GetDataAsync(DataSourceContext context, CancellationToken ct)
     {
         if (string.IsNullOrEmpty(contentInput.ContentType))
-            throw new PluginMisconfigurationException("Please specify content type first");
+            throw new PluginMisconfigurationException("Please specify the content type first");
+
+        if (string.IsNullOrEmpty(localeInput.Locale))
+            throw new PluginMisconfigurationException("Please specify the locale first");
 
         var service = _factory.GetContentService(contentInput.ContentType);
         var items = await service.SearchContentMinimal(localeInput.Locale, context.SearchString);

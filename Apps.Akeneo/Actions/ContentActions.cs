@@ -37,8 +37,8 @@ public class ContentActions(InvocationContext invocationContext, IFileManagement
     [BlueprintActionDefinition(BlueprintAction.DownloadContent)]
     [Action("Download content", Description = "Download content")]
     public async Task<DownloadContentResponse> DownloadContent(
-        [ActionParameter] ContentRequest input,
         [ActionParameter] LocaleRequest locale,
+        [ActionParameter] ContentRequest input,
         [ActionParameter] OptionalChannelRequest channelInput,
         [ActionParameter] OptionalFileTypeHandler fileTypeInput,
         [ActionParameter] DownloadContentRequest downloadInput)
