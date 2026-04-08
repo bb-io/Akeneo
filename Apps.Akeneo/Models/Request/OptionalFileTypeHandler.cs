@@ -1,16 +1,11 @@
-﻿using Apps.Akeneo.DataSource.Static;
-using Blackbird.Applications.Sdk.Common;
+﻿using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Dictionaries;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Blackbird.Applications.SDK.Blueprints.Handlers;
 
 namespace Apps.Akeneo.Models.Request;
+
 public class OptionalFileTypeHandler
 {
-    [Display("File format")]
-    [StaticDataSource(typeof(FileTypeHandler))]
+    [Display("File format", Description = "Default is HTML"), StaticDataSource(typeof(DownloadFileFormatHandler))]
     public string? FileType { get; set; }
 }

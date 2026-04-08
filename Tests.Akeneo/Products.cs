@@ -12,12 +12,12 @@ namespace Tests.Akeneo;
 public class Products : TestBase
 {
     [TestMethod]
-    public async Task GetProductHtml_IsSuccess()
+    public async Task DownloadProductContent_IsSuccess()
     {
         // Arrange
         var actions = new ProductActions(InvocationContext, FileManager);
         var product = new ProductRequest { ProductId = "005f730c-2e31-49a0-8172-96dc65fd9b20" };
-        var locale = new LocaleRequest { Locale = "de_DE" };
+        var locale = new LocaleRequest { Locale = "en_US" };
         var fileType = new OptionalFileTypeHandler { };
         var channel = new OptionalChannelRequest { };
         var downloadInput = new DownloadProductRequest { IgnoreNonScopable = true };

@@ -2,10 +2,10 @@
 using Apps.Akeneo.Helper;
 using Apps.Akeneo.Invocables;
 using Apps.Akeneo.Models.Request;
+using Apps.Akeneo.Models.Request.Channel;
 using Apps.Akeneo.Models.Request.Content;
 using Apps.Akeneo.Models.Response.Content;
 using Apps.Akeneo.Services.Content;
-using Apps.Akeneo.Services.Content.Models;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Actions;
 using Blackbird.Applications.Sdk.Common.Invocation;
@@ -30,15 +30,22 @@ public class ContentActions(InvocationContext invocationContext, IFileManagement
         contentTypesInput.ApplyDefaultValues();
         searchInput.ValidateDates();
 
-        var input = new SearchContentServiceInput(searchInput, localeInput);
-
         var services = _factory.GetContentServices(contentTypesInput.ContentTypes!);
-        return await services.ExecuteMany(input);
+        return await services.ExecuteMany(searchInput, localeInput);
     }
 
-    public async Task DownloadContent()
+    [BlueprintActionDefinition(BlueprintAction.DownloadContent)]
+    [Action("Download content", Description = "Download content")]
+    public async Task<DownloadContentResponse> DownloadContent(
+        [ActionParameter] ContentRequest input,
+        [ActionParameter] LocaleRequest locale,
+        [ActionParameter] OptionalChannelRequest channelInput,
+        [ActionParameter] OptionalFileTypeHandler fileTypeInput,
+        [ActionParameter] DownloadContentRequest downloadInput)
     {
-        throw new NotImplementedException();
+        var service = _factory.GetContentService(input.ContentType);
+        var file = await service.DownloadContent(input, locale, channelInput, fileTypeInput, downloadInput);
+        return new(file);
     }
 
     public async Task UploadContent()

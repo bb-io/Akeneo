@@ -1,4 +1,3 @@
-using System.Net.Mime;
 using Apps.Akeneo.Constants;
 using Apps.Akeneo.HtmlConversion;
 using Apps.Akeneo.Invocables;
@@ -16,11 +15,11 @@ using RestSharp;
 using Apps.Akeneo.Models.Queries;
 using Blackbird.Applications.Sdk.Common.Exceptions;
 using Newtonsoft.Json.Linq;
-using System.Text;
 using Newtonsoft.Json;
 using Apps.Akeneo.Helper;
 using Apps.Akeneo.Models.Request.Channel;
-using Apps.Akeneo.Extensions;
+using Apps.Akeneo.Services.Content;
+using Apps.Akeneo.Models.Request.Content;
 
 namespace Apps.Akeneo.Actions;
 
@@ -28,6 +27,8 @@ namespace Apps.Akeneo.Actions;
 public class ProductActions(InvocationContext invocationContext, IFileManagementClient fileManagementClient)
     : AkeneoInvocable(invocationContext)
 {
+    private readonly ContentServiceFactory _factory = new(invocationContext, fileManagementClient);
+
     [Action("Search products", Description = "Search for products based on filter criteria")]
     public async Task<ListProductResponse> SearchProducts(
         [ActionParameter] SearchProductsRequest input, 
@@ -123,28 +124,13 @@ public class ProductActions(InvocationContext invocationContext, IFileManagement
         [ActionParameter] OptionalFileTypeHandler fileType,
         [ActionParameter] OptionalChannelRequest channelInput,
         [ActionParameter] DownloadProductRequest downloadInput)
-    {     
-        if (fileType.FileType == null || fileType.FileType == "html")
-        {
-            var product = await GetProductContent(input.ProductId);
-            var htmlStream = ProductHtmlConverter.ToHtml(
-                product, 
-                locale.Locale, 
-                channelInput.ChannelCode, 
-                downloadInput.IgnoreNonScopable ?? false);
+    {
+        var service = _factory.GetContentService(ContentTypeConstants.Product);
+        var contentInput = new ContentRequest { ContentType = ContentTypeConstants.Product, ContentId = input.ProductId };
+        var downloadContentInput = new DownloadContentRequest { IgnoreNonScopable = downloadInput.IgnoreNonScopable };
 
-            string htmlFileName = input.ProductId.ToFileName("html");
-            var htmlFile = await fileManagementClient.UploadAsync(htmlStream, MediaTypeNames.Text.Html, htmlFileName);
-            return new FileModel { File = htmlFile };
-        }
-
-        var response = await GetProductContentRaw(input.ProductId);
-        var jsonBytes = Encoding.UTF8.GetBytes(response.Content);
-        var stream = new MemoryStream(jsonBytes);
-
-        string jsonFileName = input.ProductId.ToFileName("json");
-        var jsonFile = await fileManagementClient.UploadAsync(stream, MediaTypeNames.Application.Json, jsonFileName);
-        return new FileModel { File = jsonFile };
+        var file = await service.DownloadContent(contentInput, locale, channelInput, fileType, downloadContentInput);
+        return new FileModel { File = file };
     }
 
     [Action("Upload product content", Description = "Update product content from a Blackbird generated HTML or JSON file (see docs)")]
@@ -184,11 +170,5 @@ public class ProductActions(InvocationContext invocationContext, IFileManagement
     {
         var request = new RestRequest($"/products-uuid/{productId}");
         return await Client.ExecuteWithErrorHandling<ProductContentEntity>(request);
-    }
-
-    private async Task<RestResponse> GetProductContentRaw(string productId)
-    {
-        var request = new RestRequest($"/products-uuid/{productId}");
-        return await Client.ExecuteWithErrorHandling(request);
     }
 }

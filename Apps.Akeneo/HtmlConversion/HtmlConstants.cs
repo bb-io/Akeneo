@@ -15,4 +15,8 @@ public class HtmlConstants
     public const string Td = "td";
     public const string Th = "th";
     public const string Tr = "tr";
+
+    public const string ContentType = "blackbird-content-type";
+    public const string Locale = "blackbird-locale";
+    public const string Channel = "blackbird-channel";
 }

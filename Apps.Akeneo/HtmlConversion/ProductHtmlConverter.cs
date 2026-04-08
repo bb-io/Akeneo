@@ -1,5 +1,6 @@
 using System.Text;
 using System.Web;
+using Apps.Akeneo.Extensions;
 using Apps.Akeneo.Models.Entities;
 using Blackbird.Applications.Sdk.Common.Exceptions;
 using HtmlAgilityPack;
@@ -18,9 +19,17 @@ public static class ProductHtmlConverter
     private const string ArrayType = "array";
     private const string TableType = "table";
 
-    public static Stream ToHtml(IContentEntity product, string locale, string? scope, bool ignoreNonScopable)
+    public static Stream ToHtml(
+        IContentEntity product,
+        string locale, 
+        string? scope, 
+        bool ignoreNonScopable, 
+        string contentType)
     {
         var (doc, body) = PrepareEmptyHtmlDocument();
+        doc = doc
+            .InjectMetadata(HtmlConstants.ContentType, contentType)
+            .InjectMetadata(HtmlConstants.Locale, locale);
 
         var filteredValues = product.Values
             .Where(kvp =>

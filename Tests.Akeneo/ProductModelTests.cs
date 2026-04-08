@@ -11,12 +11,7 @@ namespace Tests.Akeneo;
 [TestClass]
 public class ProductModelTests : TestBase
 {
-    private readonly ProductModelActions _actions;
-
-    public ProductModelTests()
-    {
-        _actions = new ProductModelActions(InvocationContext, FileManager);
-    }
+    private ProductModelActions Actions => new(InvocationContext, FileManager);
 
     [TestMethod]
     public async Task SearchProductModels_ReturnsProductModels()
@@ -26,7 +21,7 @@ public class ProductModelTests : TestBase
         var locale = new LocaleRequest { Locale = "en_US" };
 
         // Act
-        var result = await _actions.SearchProductModels(input, locale);
+        var result = await Actions.SearchProductModels(input, locale);
 
         // Assert
         PrintJsonResult(result);
@@ -34,16 +29,17 @@ public class ProductModelTests : TestBase
     }
 
     [TestMethod]
-    public async Task GetProductModelHtml_IsSuccess()
+    public async Task DownloadProductModelContent_IsSuccess()
     {
         // Arrange
         var input = new ProductModelRequest { ProductModelCode = "Milwaukee Mens Black No Days Off Hooded Sweatshirt" };
         var locale = new LocaleRequest { Locale = "en_US" };
-        var channel = new OptionalChannelRequest { /*ChannelCode = "b2b"*/ };
+        var fileType = new OptionalFileTypeHandler { FileType = "original" };
+        var channel = new OptionalChannelRequest { ChannelCode = "ecommerce" };
         var downloadInput = new DownloadProductModelRequest { IgnoreNonScopable = true };
 
         // Act
-        var result = await _actions.GetProductModelHtml(input, locale, channel, downloadInput);
+        var result = await Actions.GetProductModelHtml(input, locale, fileType, channel, downloadInput);
 
         // Assert
         Console.WriteLine(result.File.Name);
@@ -60,6 +56,6 @@ public class ProductModelTests : TestBase
         var channel = new OptionalChannelRequest { ChannelCode = "print" };
 
         // Act
-        await _actions.UpdateProductModelHtml(productModel, locale, channel, file);
+        await Actions.UpdateProductModelHtml(productModel, locale, channel, file);
     }
 }

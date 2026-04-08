@@ -7,9 +7,11 @@ using Apps.Akeneo.Models.Entities;
 using Apps.Akeneo.Models.Queries;
 using Apps.Akeneo.Models.Request;
 using Apps.Akeneo.Models.Request.Channel;
+using Apps.Akeneo.Models.Request.Content;
 using Apps.Akeneo.Models.Request.Product;
 using Apps.Akeneo.Models.Request.ProductModel;
 using Apps.Akeneo.Models.Response.ProductModel;
+using Apps.Akeneo.Services.Content;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Actions;
 using Blackbird.Applications.Sdk.Common.Authentication;
@@ -17,7 +19,6 @@ using Blackbird.Applications.Sdk.Common.Invocation;
 using Blackbird.Applications.Sdk.Utils.Extensions.Http;
 using Blackbird.Applications.SDK.Extensions.FileManagement.Interfaces;
 using RestSharp;
-using System.Net.Mime;
 
 namespace Apps.Akeneo.Actions;
 
@@ -25,6 +26,8 @@ namespace Apps.Akeneo.Actions;
 public class ProductModelActions(InvocationContext invocationContext, IFileManagementClient fileManagementClient)
     : AkeneoInvocable(invocationContext)
 {
+    private readonly ContentServiceFactory _factory = new(invocationContext, fileManagementClient);
+
     [Action("Search product models", Description = "Search for product models based on filter criteria")]
     public async Task<ListProductModelResponse> SearchProductModels(
         [ActionParameter] SearchProductModelRequest input, 
@@ -77,18 +80,15 @@ public class ProductModelActions(InvocationContext invocationContext, IFileManag
     public async Task<FileModel> GetProductModelHtml(
         [ActionParameter] ProductModelRequest input,
         [ActionParameter] LocaleRequest locale,
+        [ActionParameter] OptionalFileTypeHandler fileType,
         [ActionParameter] OptionalChannelRequest channelInput,
         [ActionParameter] DownloadProductModelRequest downloadInput)
     {
-        var productModel = await GetProductModelContent(input.ProductModelCode);
+        var service = _factory.GetContentService(ContentTypeConstants.ProductModel);
+        var contentInput = new ContentRequest { ContentType = ContentTypeConstants.Product, ContentId = input.ProductModelCode };
+        var downloadContentInput = new DownloadContentRequest { IgnoreNonScopable = downloadInput.IgnoreNonScopable };
 
-        var htmlStream = ProductHtmlConverter.ToHtml(
-            productModel, 
-            locale.Locale, 
-            channelInput.ChannelCode,
-            downloadInput.IgnoreNonScopable ?? false);
-
-        var file = await fileManagementClient.UploadAsync(htmlStream, MediaTypeNames.Text.Html, $"{productModel.Id}.html");
+        var file = await service.DownloadContent(contentInput, locale, channelInput, fileType, downloadContentInput);
         return new FileModel { File = file };
     }
 
