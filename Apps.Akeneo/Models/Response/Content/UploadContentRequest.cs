@@ -11,7 +11,7 @@ namespace Apps.Akeneo.Models.Response.Content;
 public class UploadContentRequest : IUploadContentInput
 {
     [Display("Content")]
-    public FileReference Content { get; set; } = null!;
+    public FileReference Content { get; set; }
 
     [Display("Locale"), DataSource(typeof(LocaleDataSourceHandler))]
     public string Locale { get; set; } = string.Empty;
