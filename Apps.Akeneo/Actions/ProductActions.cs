@@ -113,7 +113,7 @@ public class ProductActions(InvocationContext invocationContext, IFileManagement
         return Client.ExecuteWithErrorHandling(request);
     }
 
-    [Action("Download product content", Description = "Get product content in HTML or JSON format (see docs)")]
+    [Action("Download product content", Description = "Download product content to a file")]
     public async Task<FileModel> GetProductHtml(
         [ActionParameter] ProductRequest input, 
         [ActionParameter] LocaleRequest locale, 
@@ -129,7 +129,7 @@ public class ProductActions(InvocationContext invocationContext, IFileManagement
         return new FileModel { File = file };
     }
 
-    [Action("Upload product content", Description = "Update product content from a Blackbird generated HTML or JSON file (see docs)")]
+    [Action("Upload product content", Description = "Upload product content from a file")]
     public async Task UpdateProductHtml(
         [ActionParameter] ProductOptionalRequest input,
         [ActionParameter] LocaleRequest locale,

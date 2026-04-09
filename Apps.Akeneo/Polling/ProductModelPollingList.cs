@@ -14,7 +14,7 @@ namespace Apps.Akeneo.Polling;
 [PollingEventList("Product models")]
 public class ProductModelPollingList(InvocationContext invocationContext) : AkeneoInvocable(invocationContext)
 {
-    [PollingEvent("On product models created or updated", "This event triggers when any product models are created or updated")]
+    [PollingEvent("On product models created or updated", "This event triggers whenever product models are created or updated")]
     public async Task<PollingEventResponse<DateMemory, ListProductModelResponse>> OnProductModelsCreatedOrUpdated(
         PollingEventRequest<DateMemory> input, 
         [PollingEventParameter] ProductModelFilter filter)

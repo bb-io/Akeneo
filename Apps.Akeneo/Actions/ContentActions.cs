@@ -22,7 +22,7 @@ public class ContentActions(InvocationContext invocationContext, IFileManagement
     private readonly ContentServiceFactory _factory = new(invocationContext, fileManagementClient);
 
     [BlueprintActionDefinition(BlueprintAction.SearchContent)]
-    [Action("Search content", Description = "Search for multiple types of content")]
+    [Action("Search content", Description = "Search for different types of content")]
     public async Task<SearchContentResponse> SearchContent(
         [ActionParameter] ContentTypesRequest contentTypesInput,
         [ActionParameter] SearchContentRequest searchInput,
@@ -36,7 +36,7 @@ public class ContentActions(InvocationContext invocationContext, IFileManagement
     }
 
     [BlueprintActionDefinition(BlueprintAction.DownloadContent)]
-    [Action("Download content", Description = "Download content")]
+    [Action("Download content", Description = "Download content to a file")]
     public async Task<DownloadContentResponse> DownloadContent(
         [ActionParameter] LocaleRequest locale,
         [ActionParameter] ContentRequest input,

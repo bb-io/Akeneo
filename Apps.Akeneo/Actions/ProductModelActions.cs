@@ -75,7 +75,7 @@ public class ProductModelActions(InvocationContext invocationContext, IFileManag
         return Client.ExecuteWithErrorHandling(request);
     }
 
-    [Action("Download product model content", Description = "Get product model content")]
+    [Action("Download product model content", Description = "Download product model content to a file")]
     public async Task<FileModel> GetProductModelHtml(
         [ActionParameter] ProductModelRequest input,
         [ActionParameter] LocaleRequest locale,
@@ -91,7 +91,7 @@ public class ProductModelActions(InvocationContext invocationContext, IFileManag
         return new FileModel { File = file };
     }
 
-    [Action("Upload product model content", Description = "Update product model content from a file")]
+    [Action("Upload product model content", Description = "Upload product model content from a file")]
     public async Task UpdateProductModelHtml(
         [ActionParameter] ProductModelOptionalRequest input,
         [ActionParameter] LocaleRequest locale,

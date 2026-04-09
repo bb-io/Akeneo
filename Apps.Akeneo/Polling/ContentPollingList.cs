@@ -19,7 +19,7 @@ public class ContentPollingList(InvocationContext invocationContext) : AkeneoInv
     private readonly ContentServiceFactory _factory = new(invocationContext, default!);
 
     [BlueprintEventDefinition(BlueprintEvent.ContentCreatedOrUpdatedMultiple)]
-    [PollingEvent("On content created or updated", "This event triggers when the specified type of content is created or updated")]
+    [PollingEvent("On content created or updated", "This event triggers whenever content is created or updated")]
     public async Task<PollingEventResponse<DateMemory, OnContentCreatedOrUpdatedResponse>> OnContentCreatedOrUpdated(
         PollingEventRequest<DateMemory> input,
         [PollingEventParameter] ContentTypesRequest contentTypesInput,
