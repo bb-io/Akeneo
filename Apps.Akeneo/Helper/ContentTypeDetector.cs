@@ -17,14 +17,9 @@ public static class ContentTypeDetector
     {
         if (initialFile.Name.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
         {
-            var memoryStream = new MemoryStream();
-            await memoryStream.CopyToAsync(fileStream);
-            memoryStream.Position = 0;
-
-            using var reader = new StreamReader(memoryStream);
-            var json = await reader.ReadToEndAsync();
-
+            string json = await fileStream.ReadAsStringAsync();
             var jObject = JObject.Parse(json);
+
             string? contentType = jObject["content_type"]?.ToString();
             if (!string.IsNullOrWhiteSpace(contentType))
                 return new(contentType, MediaTypeNames.Application.Json, json);
@@ -35,12 +30,7 @@ public static class ContentTypeDetector
         }
         else
         {
-            var memoryStream = new MemoryStream();
-            await memoryStream.CopyToAsync(fileStream);
-            memoryStream.Position = 0;
-
-            using var reader = new StreamReader(memoryStream);
-            string html = await reader.ReadToEndAsync();
+            string html = await fileStream.ReadAsStringAsync();
             var doc = await ContentDownloader.LoadHtmlDocument(html);
 
             string? contentType = doc.ExtractMetadata(HtmlConstants.ContentType);
