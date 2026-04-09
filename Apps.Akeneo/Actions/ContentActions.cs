@@ -55,7 +55,7 @@ public class ContentActions(InvocationContext invocationContext, IFileManagement
         [ActionParameter] UploadContentRequest uploadInput,
         [ActionParameter] OptionalChannelRequest channelInput)
     {
-        using var fileStream = await fileManagementClient.DownloadAsync(uploadInput.Content);
+        var fileStream = await fileManagementClient.DownloadAsync(uploadInput.Content);
 
         DetectedContent contentData = await ContentTypeDetector.DetectFromFile(fileStream, uploadInput.Content);
         string contentType = uploadInput.ContentType ?? contentData.ContentType;
