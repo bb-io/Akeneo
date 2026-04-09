@@ -2,7 +2,7 @@
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Dynamic;
 
-namespace Apps.Akeneo.Polling.Models
+namespace Apps.Akeneo.Polling.Models.Request
 {
     public class ProductModelFilter
     {

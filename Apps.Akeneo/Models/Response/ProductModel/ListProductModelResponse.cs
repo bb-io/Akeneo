@@ -1,11 +1,10 @@
 ﻿using Apps.Akeneo.Models.Entities;
 using Blackbird.Applications.Sdk.Common;
 
-namespace Apps.Akeneo.Models.Response.ProductModel
+namespace Apps.Akeneo.Models.Response.ProductModel;
+
+public record ListProductModelResponse(List<ProductModelEntity> ProductModels) 
 {
-    public class ListProductModelResponse
-    {
-        [Display("Product models")]
-        public IEnumerable<ProductModelEntity> ProductModels { get; set; }
-    }
+    [Display("Product models")]
+    public List<ProductModelEntity> ProductModels { get; set; } = ProductModels;
 }

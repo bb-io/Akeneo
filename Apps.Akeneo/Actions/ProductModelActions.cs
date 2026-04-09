@@ -48,10 +48,8 @@ public class ProductModelActions(InvocationContext invocationContext, IFileManag
         request.AddQueryParameter("locales", locale.Locale);
         request.AddQueryParameter("search", query.ToString());
 
-        return new()
-        {
-            ProductModels = await Client.Paginate<ProductModelEntity>(request)
-        };
+        var productModels = await Client.Paginate<ProductModelEntity>(request);
+        return new(productModels);
     }
 
     [Action("Get product model info", Description = "Get details about a specific product model")]

@@ -28,7 +28,7 @@ public record GetContentResponse : IDownloadContentInput
     public GetContentResponse(ProductContentEntity productEntity, string locale)
     {
         ContentId = productEntity.Id;
-        ContentName = productEntity.Values["name"].FirstOrDefault(x => x.Locale == locale)?.Data.ToString();
+        ContentName = productEntity.Values.GetValueOrDefault("name")?.FirstOrDefault(x => x.Locale == locale)?.Data?.ToString();
         ContentType = ContentTypeConstants.Product;
         Family = productEntity.Family;
         Created = productEntity.Created;

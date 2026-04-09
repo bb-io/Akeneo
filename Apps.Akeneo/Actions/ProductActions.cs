@@ -87,10 +87,7 @@ public class ProductActions(InvocationContext invocationContext, IFileManagement
             }
         }
 
-        return new()
-        {
-            Products = products
-        };
+        return new(products);
     }
 
     [Action("Get product info", Description = "Get details about a specific product")]
