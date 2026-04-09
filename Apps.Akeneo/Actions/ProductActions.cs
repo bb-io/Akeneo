@@ -125,7 +125,12 @@ public class ProductActions(InvocationContext invocationContext, IFileManagement
         var contentInput = new ContentRequest { ContentType = ContentTypeConstants.Product, ContentId = input.ProductId };
         var downloadContentInput = new DownloadContentRequest { IgnoreNonScopable = downloadInput.IgnoreNonScopable };
 
-        var file = await service.DownloadContent(contentInput, locale, channelInput, fileType, downloadContentInput);
+        var file = await service.DownloadContent(
+            contentInput,
+            locale.Locale,
+            channelInput.ChannelCode,
+            fileType.FileType,
+            downloadContentInput);
         return new FileModel { File = file };
     }
 

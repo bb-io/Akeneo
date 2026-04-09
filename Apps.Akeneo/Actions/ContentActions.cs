@@ -45,7 +45,12 @@ public class ContentActions(InvocationContext invocationContext, IFileManagement
         [ActionParameter] DownloadContentRequest downloadInput)
     {
         var service = _factory.GetContentService(input.ContentType);
-        var file = await service.DownloadContent(input, locale, channelInput, fileTypeInput, downloadInput);
+        var file = await service.DownloadContent(
+            input, 
+            locale.Locale, 
+            channelInput.ChannelCode, 
+            fileTypeInput.FileType, 
+            downloadInput);
         return new(file);
     }
 

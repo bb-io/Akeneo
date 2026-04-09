@@ -4,8 +4,6 @@ using Apps.Akeneo.Extensions;
 using Apps.Akeneo.Invocables;
 using Apps.Akeneo.Models.Entities;
 using Apps.Akeneo.Models.Queries;
-using Apps.Akeneo.Models.Request;
-using Apps.Akeneo.Models.Request.Channel;
 using Apps.Akeneo.Models.Request.Content;
 using Apps.Akeneo.Models.Request.ProductModel;
 using Apps.Akeneo.Models.Response.Content;
@@ -56,21 +54,21 @@ public class ProductModelContentService(InvocationContext invocationContext, IFi
 
     public async Task<FileReference> DownloadContent(
         ContentRequest input,
-        LocaleRequest locale,
-        OptionalChannelRequest channelInput,
-        OptionalFileTypeHandler fileTypeInput,
+        string locale,
+        string? channelInput,
+        string? fileType,
         DownloadContentRequest downloadInput)
     {
         FileReference fileReference;
         var productModel = await GetProductModelContent(input.ContentId);
 
-        switch (fileTypeInput.FileType)
+        switch (fileType)
         {
             case null or "text/html":
                 var htmlStream = ProductHtmlConverter.ToOutputStream(
                     productModel,
-                    locale.Locale,
-                    channelInput.ChannelCode,
+                    locale,
+                    channelInput,
                     downloadInput.IgnoreNonScopable ?? false);
 
                 string fileName = productModel.Id.ToFileName("html");
@@ -80,8 +78,8 @@ public class ProductModelContentService(InvocationContext invocationContext, IFi
             case "original":
                 var stream = ProductJsonConverter.ToOutputStream(
                     productModel,
-                    locale.Locale,
-                    channelInput.ChannelCode,
+                    locale,
+                    channelInput,
                     downloadInput.IgnoreNonScopable ?? false);
 
                 string jsonFileName = productModel.Id.ToFileName("json");
@@ -89,7 +87,7 @@ public class ProductModelContentService(InvocationContext invocationContext, IFi
                 break;
 
             default:
-                throw new PluginMisconfigurationException($"This content type is not supported: {fileTypeInput.FileType}");
+                throw new PluginMisconfigurationException($"This content type is not supported: {fileType}");
         }
 
         return fileReference;

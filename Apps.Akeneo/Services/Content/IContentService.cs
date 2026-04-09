@@ -1,6 +1,4 @@
-﻿using Apps.Akeneo.Models.Request;
-using Apps.Akeneo.Models.Request.Channel;
-using Apps.Akeneo.Models.Request.Content;
+﻿using Apps.Akeneo.Models.Request.Content;
 using Apps.Akeneo.Models.Response.Content;
 using Apps.Akeneo.Models.Utility;
 using Blackbird.Applications.Sdk.Common.Files;
@@ -13,9 +11,9 @@ public interface IContentService
     Task<SearchContentResponse> SearchContentMinimal(string locale, string? nameContains);
     Task<FileReference> DownloadContent(
         ContentRequest input, 
-        LocaleRequest locale,
-        OptionalChannelRequest channelInput,
-        OptionalFileTypeHandler fileTypeInput,
+        string locale,
+        string? channelInput,
+        string? fileType,
         DownloadContentRequest downloadInput);
     Task UploadContent(string? contentId, string locale, string? channelInput, DetectedContent detectedContent);
 }
