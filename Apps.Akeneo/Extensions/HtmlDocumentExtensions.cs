@@ -23,4 +23,13 @@ public static class HtmlDocumentExtensions
         head.AppendChild(metaTag);
         return doc;
     }
+
+    public static string? ExtractMetadata(this HtmlDocument doc, string metaName)
+    {
+        if (string.IsNullOrWhiteSpace(metaName))
+            return null;
+
+        var metaTag = doc.DocumentNode.SelectSingleNode($"//meta[@name='{metaName}']");
+        return metaTag?.GetAttributeValue("content", string.Empty);
+    }
 }

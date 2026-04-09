@@ -1,13 +1,15 @@
-using System.Text;
-using System.Web;
 using Apps.Akeneo.Extensions;
+using Apps.Akeneo.Helper;
+using Apps.Akeneo.HtmlConversion;
 using Apps.Akeneo.Models.Entities;
 using Blackbird.Applications.Sdk.Common.Exceptions;
 using HtmlAgilityPack;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Text;
+using System.Web;
 
-namespace Apps.Akeneo.HtmlConversion;
+namespace Apps.Akeneo.Conversion.Product;
 
 public static class ProductHtmlConverter
 {
@@ -19,17 +21,11 @@ public static class ProductHtmlConverter
     private const string ArrayType = "array";
     private const string TableType = "table";
 
-    public static Stream ToHtml(
-        IContentEntity product,
-        string locale, 
-        string? scope, 
-        bool ignoreNonScopable, 
-        string contentType)
+    public static Stream ToOutputStream(IContentEntity product, string locale, string? scope, bool ignoreNonScopable)
     {
         var (doc, body) = PrepareEmptyHtmlDocument();
-        doc = doc
-            .InjectMetadata(HtmlConstants.ContentType, contentType)
-            .InjectMetadata(HtmlConstants.Locale, locale);
+        string contentType = ContentTypeDetector.DetectFromType(product);
+        doc = doc.InjectMetadata(HtmlConstants.ContentType, contentType);
 
         var filteredValues = product.Values
             .Where(kvp =>
@@ -59,7 +55,8 @@ public static class ProductHtmlConverter
         return new MemoryStream(htmlBytes);
     }
 
-    public static T UpdateFromHtml<T>(T product, string locale, HtmlDocument doc, string? channel) where T : IContentEntity
+    public static T UpdateFromHtml<T>(T product, string locale, HtmlDocument doc, string? channel) 
+        where T : IContentEntity
     {
         var valueNodes = doc.DocumentNode.SelectSingleNode("//body").ChildNodes
             .Where(x => x.Attributes[ValueNameAttribute]?.Value is not null)

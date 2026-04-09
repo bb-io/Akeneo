@@ -1,25 +1,24 @@
 using Apps.Akeneo.Constants;
-using Apps.Akeneo.HtmlConversion;
+using Apps.Akeneo.Helper;
 using Apps.Akeneo.Invocables;
 using Apps.Akeneo.Models;
 using Apps.Akeneo.Models.Entities;
+using Apps.Akeneo.Models.Queries;
 using Apps.Akeneo.Models.Request;
+using Apps.Akeneo.Models.Request.Channel;
+using Apps.Akeneo.Models.Request.Content;
 using Apps.Akeneo.Models.Request.Product;
 using Apps.Akeneo.Models.Response.Product;
+using Apps.Akeneo.Models.Utility;
+using Apps.Akeneo.Services.Content;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Actions;
-using Blackbird.Applications.Sdk.Common.Invocation;
-using Blackbird.Applications.SDK.Extensions.FileManagement.Interfaces;
-using Blackbird.Applications.Sdk.Utils.Extensions.Http;
-using RestSharp;
-using Apps.Akeneo.Models.Queries;
 using Blackbird.Applications.Sdk.Common.Exceptions;
+using Blackbird.Applications.Sdk.Common.Invocation;
+using Blackbird.Applications.Sdk.Utils.Extensions.Http;
+using Blackbird.Applications.SDK.Extensions.FileManagement.Interfaces;
 using Newtonsoft.Json.Linq;
-using Newtonsoft.Json;
-using Apps.Akeneo.Helper;
-using Apps.Akeneo.Models.Request.Channel;
-using Apps.Akeneo.Services.Content;
-using Apps.Akeneo.Models.Request.Content;
+using RestSharp;
 
 namespace Apps.Akeneo.Actions;
 
@@ -140,35 +139,14 @@ public class ProductActions(InvocationContext invocationContext, IFileManagement
         [ActionParameter] OptionalChannelRequest channelInput,
         [ActionParameter] FileModel file)
     {
-        var fileStream = await fileManagementClient.DownloadAsync(file.File);
-        ProductContentEntity updatedProduct;
-        string productId;
+        using var fileStream = await fileManagementClient.DownloadAsync(file.File);
 
-        if(file.File.Name.EndsWith("json"))
-        {
-            var reader = new StreamReader(fileStream);
-            var json = await reader.ReadToEndAsync();
-            updatedProduct = JsonConvert.DeserializeObject<ProductContentEntity>(json);
-            productId = updatedProduct.Id;
-        } else
-        {
-            var htmlDoc = await ContentDownloader.GetHtmlFromFile(fileStream);
-            productId = input.ProductId ?? ProductHtmlConverter.GetResourceId(htmlDoc);
-            var product = await GetProductContent(productId);
-            updatedProduct = ProductHtmlConverter.UpdateFromHtml(product, locale.Locale, htmlDoc, channelInput.ChannelCode);
-        }
+        DetectedContent contentData = await ContentTypeDetector.DetectFromFile(fileStream, file.File);
+        if (contentData.ContentType != ContentTypeConstants.Product)
+            throw new PluginMisconfigurationException(
+                $"Product content expected, instead {contentData.ContentType} was provided");
 
-        updatedProduct.Values = updatedProduct.Values.Where(x => x.Value.All(y => y.Locale != null && y.Scope != null)).ToDictionary();
-
-        var request = new RestRequest($"/products-uuid/{productId}", Method.Patch)
-            .WithJsonBody(new UpdateProductRequest(updatedProduct), JsonConfig.Settings);
-
-        await Client.ExecuteWithErrorHandling(request);
-    }
-
-    private async Task<ProductContentEntity> GetProductContent(string productId)
-    {
-        var request = new RestRequest($"/products-uuid/{productId}");
-        return await Client.ExecuteWithErrorHandling<ProductContentEntity>(request);
+        var service = _factory.GetContentService(ContentTypeConstants.Product);
+        await service.UploadContent(input.ProductId, locale.Locale, channelInput.ChannelCode, contentData);
     }
 }

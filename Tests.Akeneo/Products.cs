@@ -18,7 +18,7 @@ public class Products : TestBase
         var actions = new ProductActions(InvocationContext, FileManager);
         var product = new ProductRequest { ProductId = "005f730c-2e31-49a0-8172-96dc65fd9b20" };
         var locale = new LocaleRequest { Locale = "en_US" };
-        var fileType = new OptionalFileTypeHandler { };
+        var fileType = new OptionalFileTypeHandler { FileType = "original" };
         var channel = new OptionalChannelRequest { };
         var downloadInput = new DownloadProductRequest { IgnoreNonScopable = true };
 

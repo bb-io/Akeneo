@@ -1,17 +1,16 @@
 ﻿using Blackbird.Applications.Sdk.Common.Exceptions;
-using Blackbird.Applications.Sdk.Utils.Extensions.Files;
 using Blackbird.Filters.Transformations;
 using Blackbird.Filters.Xliff.Xliff2;
 using HtmlAgilityPack;
-using System.Text;
 
 namespace Apps.Akeneo.Helper;
 
 public static class ContentDownloader
 {
-    public async static Task<HtmlDocument> GetHtmlFromFile(Stream fileStream)
+    public async static Task<HtmlDocument> LoadHtmlDocument(string? html)
     {
-        var html = Encoding.UTF8.GetString(await fileStream.GetByteData());
+        if (string.IsNullOrWhiteSpace(html))
+            throw new PluginMisconfigurationException("XLIFF/HTML file is empty");
 
         if (Xliff2Serializer.IsXliff2(html))
         {

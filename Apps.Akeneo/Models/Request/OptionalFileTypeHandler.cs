@@ -6,6 +6,6 @@ namespace Apps.Akeneo.Models.Request;
 
 public class OptionalFileTypeHandler
 {
-    [Display("File format", Description = "Default is HTML"), StaticDataSource(typeof(DownloadFileFormatHandler))]
+    [Display("File format"), StaticDataSource(typeof(DownloadFileFormatHandler))]
     public string? FileType { get; set; }
 }

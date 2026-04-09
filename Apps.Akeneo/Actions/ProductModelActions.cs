@@ -1,6 +1,5 @@
 ﻿using Apps.Akeneo.Constants;
 using Apps.Akeneo.Helper;
-using Apps.Akeneo.HtmlConversion;
 using Apps.Akeneo.Invocables;
 using Apps.Akeneo.Models;
 using Apps.Akeneo.Models.Entities;
@@ -11,10 +10,12 @@ using Apps.Akeneo.Models.Request.Content;
 using Apps.Akeneo.Models.Request.Product;
 using Apps.Akeneo.Models.Request.ProductModel;
 using Apps.Akeneo.Models.Response.ProductModel;
+using Apps.Akeneo.Models.Utility;
 using Apps.Akeneo.Services.Content;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Actions;
 using Blackbird.Applications.Sdk.Common.Authentication;
+using Blackbird.Applications.Sdk.Common.Exceptions;
 using Blackbird.Applications.Sdk.Common.Invocation;
 using Blackbird.Applications.Sdk.Utils.Extensions.Http;
 using Blackbird.Applications.SDK.Extensions.FileManagement.Interfaces;
@@ -99,28 +100,15 @@ public class ProductModelActions(InvocationContext invocationContext, IFileManag
         [ActionParameter] OptionalChannelRequest channelInput,
         [ActionParameter] FileModel file)
     {
-        var fileStream = await fileManagementClient.DownloadAsync(file.File);
-        var htmlDoc = await ContentDownloader.GetHtmlFromFile(fileStream);
+        using var fileStream = await fileManagementClient.DownloadAsync(file.File);
 
-        var productId = input.ProductModelCode ?? ProductHtmlConverter.GetResourceId(htmlDoc);
-        var productModel = await GetProductModelContent(productId);
+        DetectedContent contentData = await ContentTypeDetector.DetectFromFile(fileStream, file.File);
+        if (contentData.ContentType != ContentTypeConstants.ProductModel)
+            throw new PluginMisconfigurationException(
+                $"Product model content expected, instead {contentData.ContentType} was provided");
 
-        var updatedProduct = ProductHtmlConverter.UpdateFromHtml(
-            productModel, 
-            locale.Locale, 
-            htmlDoc, 
-            channelInput.ChannelCode);
-
-        var request = new RestRequest($"/product-models/{productId}", Method.Patch)
-            .WithJsonBody(new UpdateProductModelRequest(updatedProduct), JsonConfig.Settings);
-
-        await Client.ExecuteWithErrorHandling(request);
-    }
-
-    private Task<ProductModelContentEntity> GetProductModelContent(string modelCode)
-    {
-        var request = new RestRequest($"/product-models/{modelCode}");
-        return Client.ExecuteWithErrorHandling<ProductModelContentEntity>(request);
+        var service = _factory.GetContentService(ContentTypeConstants.ProductModel);
+        await service.UploadContent(input.ProductModelCode, locale.Locale, channelInput.ChannelCode, contentData);
     }
 
     [Action("DEBUG: Get auth data", Description = "Can be used only for debugging purposes.")]

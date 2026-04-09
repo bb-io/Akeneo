@@ -2,6 +2,7 @@
 using Apps.Akeneo.Models.Request.Channel;
 using Apps.Akeneo.Models.Request.Content;
 using Apps.Akeneo.Models.Response.Content;
+using Apps.Akeneo.Models.Utility;
 using Blackbird.Applications.Sdk.Common.Files;
 
 namespace Apps.Akeneo.Services.Content;
@@ -16,4 +17,5 @@ public interface IContentService
         OptionalChannelRequest channelInput,
         OptionalFileTypeHandler fileTypeInput,
         DownloadContentRequest downloadInput);
+    Task UploadContent(string? contentId, string locale, string? channelInput, DetectedContent detectedContent);
 }

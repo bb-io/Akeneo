@@ -5,6 +5,7 @@ using Apps.Akeneo.Models.Request;
 using Apps.Akeneo.Models.Request.Channel;
 using Apps.Akeneo.Models.Request.Content;
 using Apps.Akeneo.Models.Response.Content;
+using Apps.Akeneo.Models.Utility;
 using Apps.Akeneo.Services.Content;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Actions;
@@ -48,8 +49,18 @@ public class ContentActions(InvocationContext invocationContext, IFileManagement
         return new(file);
     }
 
-    public async Task UploadContent()
+    [BlueprintActionDefinition(BlueprintAction.UploadContent)]
+    [Action("Upload content", Description = "Upload content from a file")]
+    public async Task UploadContent(
+        [ActionParameter] UploadContentRequest uploadInput,
+        [ActionParameter] OptionalChannelRequest channelInput)
     {
-        throw new NotImplementedException();
+        using var fileStream = await fileManagementClient.DownloadAsync(uploadInput.Content);
+
+        DetectedContent contentData = await ContentTypeDetector.DetectFromFile(fileStream, uploadInput.Content);
+        string contentType = uploadInput.ContentType ?? contentData.ContentType;
+
+        var service = _factory.GetContentService(contentType);
+        await service.UploadContent(uploadInput.ContentId, uploadInput.Locale, channelInput.ChannelCode, contentData);
     }
 }

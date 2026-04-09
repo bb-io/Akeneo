@@ -1,20 +1,23 @@
 ﻿using Apps.Akeneo.Constants;
+using Apps.Akeneo.Conversion.Product;
 using Apps.Akeneo.Extensions;
-using Apps.Akeneo.HtmlConversion;
 using Apps.Akeneo.Invocables;
 using Apps.Akeneo.Models.Entities;
 using Apps.Akeneo.Models.Queries;
 using Apps.Akeneo.Models.Request;
 using Apps.Akeneo.Models.Request.Channel;
 using Apps.Akeneo.Models.Request.Content;
+using Apps.Akeneo.Models.Request.ProductModel;
 using Apps.Akeneo.Models.Response.Content;
+using Apps.Akeneo.Models.Utility;
 using Blackbird.Applications.Sdk.Common.Exceptions;
 using Blackbird.Applications.Sdk.Common.Files;
 using Blackbird.Applications.Sdk.Common.Invocation;
+using Blackbird.Applications.Sdk.Utils.Extensions.Http;
 using Blackbird.Applications.SDK.Extensions.FileManagement.Interfaces;
+using HtmlAgilityPack;
 using RestSharp;
 using System.Net.Mime;
-using System.Text;
 
 namespace Apps.Akeneo.Services.Content.Concrete;
 
@@ -59,29 +62,29 @@ public class ProductModelContentService(InvocationContext invocationContext, IFi
         DownloadContentRequest downloadInput)
     {
         FileReference fileReference;
+        var productModel = await GetProductModelContent(input.ContentId);
 
         switch (fileTypeInput.FileType)
         {
             case null or "text/html":
-                var productModel = await GetProductModelContent(input.ContentId);
-
-                var htmlStream = ProductHtmlConverter.ToHtml(
+                var htmlStream = ProductHtmlConverter.ToOutputStream(
                     productModel,
                     locale.Locale,
                     channelInput.ChannelCode,
-                    downloadInput.IgnoreNonScopable ?? false,
-                    ContentTypeConstants.ProductModel);
+                    downloadInput.IgnoreNonScopable ?? false);
 
                 string fileName = productModel.Id.ToFileName("html");
                 fileReference = await fileManagementClient.UploadAsync(htmlStream, MediaTypeNames.Text.Html, fileName);
                 break;
 
             case "original":
-                var response = await GetProductModelContentRaw(input.ContentId);
-                var jsonBytes = Encoding.UTF8.GetBytes(response.Content!);
-                var stream = new MemoryStream(jsonBytes);
+                var stream = ProductJsonConverter.ToOutputStream(
+                    productModel,
+                    locale.Locale,
+                    channelInput.ChannelCode,
+                    downloadInput.IgnoreNonScopable ?? false);
 
-                string jsonFileName = input.ContentId.ToFileName("json");
+                string jsonFileName = productModel.Id.ToFileName("json");
                 fileReference = await fileManagementClient.UploadAsync(stream, MediaTypeNames.Application.Json, jsonFileName);
                 break;
 
@@ -92,15 +95,50 @@ public class ProductModelContentService(InvocationContext invocationContext, IFi
         return fileReference;
     }
 
+    public async Task UploadContent(string? contentId, string locale, string? channelInput, DetectedContent detectedContent)
+    {
+        ProductModelContentEntity updatedProduct;
+        string productId;
+
+        if (detectedContent.Payload is null)
+            throw new PluginMisconfigurationException("Deserialized content is null");
+
+        switch (detectedContent.FileFormat)
+        {
+            case MediaTypeNames.Text.Html:
+                var htmlDoc = detectedContent.Payload as HtmlDocument ??
+                    throw new PluginMisconfigurationException("Could not convert HTML content to HtmlDoc");
+
+                productId = contentId ?? ProductHtmlConverter.GetResourceId(htmlDoc);
+                var product = await GetProductModelContent(productId);
+                updatedProduct = ProductHtmlConverter.UpdateFromHtml(product, locale, htmlDoc, channelInput);
+                break;
+
+            case MediaTypeNames.Application.Json:
+                string jsonContent = detectedContent.Payload as string ??
+                    throw new PluginMisconfigurationException("Could not convert JSON payload to string");
+
+                updatedProduct = ProductJsonConverter.UpdateFromJson<ProductModelContentEntity>(jsonContent, locale, channelInput);
+                productId = contentId ?? updatedProduct.Id;
+                break;
+
+            default:
+                throw new PluginMisconfigurationException($"This file format is not supported: {detectedContent.ContentType}");
+        }
+
+        updatedProduct.Values = updatedProduct.Values
+            .Where(x => x.Value.All(y => y.Locale != null && y.Scope != null))
+            .ToDictionary();
+
+        var request = new RestRequest($"/product-models/{productId}", Method.Patch)
+            .WithJsonBody(new UpdateProductModelRequest(updatedProduct), JsonConfig.Settings);
+
+        await Client.ExecuteWithErrorHandling(request);
+    }
+
     private async Task<ProductModelContentEntity> GetProductModelContent(string modelCode)
     {
         var request = new RestRequest($"/product-models/{modelCode}");
         return await Client.ExecuteWithErrorHandling<ProductModelContentEntity>(request);
-    }
-
-    private async Task<RestResponse> GetProductModelContentRaw(string modelCode)
-    {
-        var request = new RestRequest($"/product-models/{modelCode}");
-        return await Client.ExecuteWithErrorHandling(request);
     }
 }
