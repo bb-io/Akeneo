@@ -6,6 +6,7 @@ using Apps.Akeneo.Models.Utility;
 using Blackbird.Applications.Sdk.Common.Exceptions;
 using Blackbird.Applications.Sdk.Common.Files;
 using Newtonsoft.Json.Linq;
+using System.IO.Pipelines;
 using System.Net.Mime;
 
 namespace Apps.Akeneo.Helper;
@@ -16,9 +17,12 @@ public static class ContentTypeDetector
     {
         if (initialFile.Name.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
         {
-            using var reader = new StreamReader(fileStream, leaveOpen: true);
+            var memoryStream = new MemoryStream();
+            await memoryStream.CopyToAsync(fileStream);
+            memoryStream.Position = 0;
+
+            using var reader = new StreamReader(memoryStream);
             var json = await reader.ReadToEndAsync();
-            fileStream.Position = 0;
 
             var jObject = JObject.Parse(json);
             string? contentType = jObject["content_type"]?.ToString();
@@ -31,9 +35,12 @@ public static class ContentTypeDetector
         }
         else
         {
-            using var reader = new StreamReader(fileStream, leaveOpen: true);
+            var memoryStream = new MemoryStream();
+            await memoryStream.CopyToAsync(fileStream);
+            memoryStream.Position = 0;
+
+            using var reader = new StreamReader(memoryStream);
             string html = await reader.ReadToEndAsync();
-            fileStream.Position = 0;
             var doc = await ContentDownloader.LoadHtmlDocument(html);
 
             string? contentType = doc.ExtractMetadata(HtmlConstants.ContentType);
