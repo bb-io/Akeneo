@@ -4,8 +4,8 @@ using Blackbird.Applications.SDK.Blueprints.Interfaces.CMS;
 
 namespace Apps.Akeneo.Models.Response.Content;
 
-public record DownloadContentResponse(FileReference FileReference) : IDownloadContentOutput
+public class DownloadContentResponse(FileReference fileReference) : IDownloadContentOutput
 {
     [Display("Content")]
-    public FileReference Content { get; set; } = FileReference;
+    public FileReference Content { get; set; } = fileReference;
 }
