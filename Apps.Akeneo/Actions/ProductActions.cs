@@ -1,26 +1,24 @@
-using System.Net.Mime;
 using Apps.Akeneo.Constants;
-using Apps.Akeneo.HtmlConversion;
+using Apps.Akeneo.Helper;
 using Apps.Akeneo.Invocables;
 using Apps.Akeneo.Models;
 using Apps.Akeneo.Models.Entities;
+using Apps.Akeneo.Models.Queries;
 using Apps.Akeneo.Models.Request;
+using Apps.Akeneo.Models.Request.Channel;
+using Apps.Akeneo.Models.Request.Content;
 using Apps.Akeneo.Models.Request.Product;
 using Apps.Akeneo.Models.Response.Product;
+using Apps.Akeneo.Models.Utility;
+using Apps.Akeneo.Services.Content;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Actions;
-using Blackbird.Applications.Sdk.Common.Invocation;
-using Blackbird.Applications.SDK.Extensions.FileManagement.Interfaces;
-using Blackbird.Applications.Sdk.Utils.Extensions.Http;
-using RestSharp;
-using Apps.Akeneo.Models.Queries;
 using Blackbird.Applications.Sdk.Common.Exceptions;
+using Blackbird.Applications.Sdk.Common.Invocation;
+using Blackbird.Applications.Sdk.Utils.Extensions.Http;
+using Blackbird.Applications.SDK.Extensions.FileManagement.Interfaces;
 using Newtonsoft.Json.Linq;
-using System.Text;
-using Newtonsoft.Json;
-using Apps.Akeneo.Helper;
-using Apps.Akeneo.Models.Request.Channel;
-using Apps.Akeneo.Extensions;
+using RestSharp;
 
 namespace Apps.Akeneo.Actions;
 
@@ -28,15 +26,23 @@ namespace Apps.Akeneo.Actions;
 public class ProductActions(InvocationContext invocationContext, IFileManagementClient fileManagementClient)
     : AkeneoInvocable(invocationContext)
 {
+    private readonly ContentServiceFactory _factory = new(invocationContext, fileManagementClient);
+
     [Action("Search products", Description = "Search for products based on filter criteria")]
-    public async Task<ListProductResponse> SearchProducts([ActionParameter] SearchProductsRequest input, 
+    public async Task<ListProductResponse> SearchProducts(
+        [ActionParameter] SearchProductsRequest input, 
         [ActionParameter] LocaleRequest locale)
     {
+        input.ValidateDates();
+
         var query = new SearchQuery();
         query.Add("name", new QueryOperator { Operator = "CONTAINS", Value = input.Name, Locale = locale.Locale });
         query.Add("categories", new QueryOperator { Operator = "IN", Value = input.Categories });
         query.Add("enabled", new QueryOperator { Operator = "=", Value = input.Enabled });
-        query.Add("updated", new QueryOperator { Operator = ">", Value = input.Updated?.ToString("yyyy-MM-dd HH:mm:ss") });
+        query.AddDateBefore("updated", input.UpdatedBefore);
+        query.AddDateAfter("updated", input.UpdatedAfter);
+        query.AddDateBefore("created", input.CreatedBefore);
+        query.AddDateAfter("created", input.CreatedAfter);
 
         var request = new RestRequest("products-uuid");
         request.AddQueryParameter("locales", locale.Locale);
@@ -81,10 +87,7 @@ public class ProductActions(InvocationContext invocationContext, IFileManagement
             }
         }
 
-        return new()
-        {
-            Products = products
-        };
+        return new(products);
     }
 
     [Action("Get product info", Description = "Get details about a specific product")]
@@ -110,79 +113,42 @@ public class ProductActions(InvocationContext invocationContext, IFileManagement
         return Client.ExecuteWithErrorHandling(request);
     }
 
-    [Action("Download product content", Description = "Get product content in HTML or JSON format (see docs)")]
+    [Action("Download product content", Description = "Download product content to a file")]
     public async Task<FileModel> GetProductHtml(
         [ActionParameter] ProductRequest input, 
         [ActionParameter] LocaleRequest locale, 
         [ActionParameter] OptionalFileTypeHandler fileType,
         [ActionParameter] OptionalChannelRequest channelInput,
         [ActionParameter] DownloadProductRequest downloadInput)
-    {     
-        if (fileType.FileType == null || fileType.FileType == "html")
-        {
-            var product = await GetProductContent(input.ProductId);
-            var htmlStream = ProductHtmlConverter.ToHtml(
-                product, 
-                locale.Locale, 
-                channelInput.ChannelCode, 
-                downloadInput.IgnoreNonScopable ?? false);
+    {
+        var service = _factory.GetContentService(ContentTypeConstants.Product);
+        var contentInput = new ContentRequest { ContentType = ContentTypeConstants.Product, ContentId = input.ProductId };
+        var downloadContentInput = new DownloadContentRequest { IgnoreNonScopable = downloadInput.IgnoreNonScopable };
 
-            string htmlFileName = input.ProductId.ToFileName("html");
-            var htmlFile = await fileManagementClient.UploadAsync(htmlStream, MediaTypeNames.Text.Html, htmlFileName);
-            return new FileModel { File = htmlFile };
-        }
-
-        var response = await GetProductContentRaw(input.ProductId);
-        var jsonBytes = Encoding.UTF8.GetBytes(response.Content);
-        var stream = new MemoryStream(jsonBytes);
-
-        string jsonFileName = input.ProductId.ToFileName("json");
-        var jsonFile = await fileManagementClient.UploadAsync(stream, MediaTypeNames.Application.Json, jsonFileName);
-        return new FileModel { File = jsonFile };
+        var file = await service.DownloadContent(
+            contentInput,
+            locale.Locale,
+            channelInput.ChannelCode,
+            fileType.FileType,
+            downloadContentInput);
+        return new FileModel { File = file };
     }
 
-    [Action("Upload product content", Description = "Update product content from a Blackbird generated HTML or JSON file (see docs)")]
+    [Action("Upload product content", Description = "Upload product content from a file")]
     public async Task UpdateProductHtml(
         [ActionParameter] ProductOptionalRequest input,
         [ActionParameter] LocaleRequest locale,
         [ActionParameter] OptionalChannelRequest channelInput,
         [ActionParameter] FileModel file)
     {
-        var fileStream = await fileManagementClient.DownloadAsync(file.File);
-        ProductContentEntity updatedProduct;
-        string productId;
+        using var fileStream = await fileManagementClient.DownloadAsync(file.File);
 
-        if(file.File.Name.EndsWith("json"))
-        {
-            var reader = new StreamReader(fileStream);
-            var json = await reader.ReadToEndAsync();
-            updatedProduct = JsonConvert.DeserializeObject<ProductContentEntity>(json);
-            productId = updatedProduct.Id;
-        } else
-        {
-            var htmlDoc = await ContentDownloader.GetHtmlFromFile(fileStream);
-            productId = input.ProductId ?? ProductHtmlConverter.GetResourceId(htmlDoc);
-            var product = await GetProductContent(productId);
-            updatedProduct = ProductHtmlConverter.UpdateFromHtml(product, locale.Locale, htmlDoc, channelInput.ChannelCode);
-        }
+        DetectedContent contentData = await ContentTypeDetector.DetectFromFile(fileStream, file.File);
+        if (contentData.ContentType != ContentTypeConstants.Product)
+            throw new PluginMisconfigurationException(
+                $"Product content expected, instead {contentData.ContentType} was provided");
 
-        updatedProduct.Values = updatedProduct.Values.Where(x => x.Value.All(y => y.Locale != null && y.Scope != null)).ToDictionary();
-
-        var request = new RestRequest($"/products-uuid/{productId}", Method.Patch)
-            .WithJsonBody(new UpdateProductRequest(updatedProduct), JsonConfig.Settings);
-
-        await Client.ExecuteWithErrorHandling(request);
-    }
-
-    private async Task<ProductContentEntity> GetProductContent(string productId)
-    {
-        var request = new RestRequest($"/products-uuid/{productId}");
-        return await Client.ExecuteWithErrorHandling<ProductContentEntity>(request);
-    }
-
-    private async Task<RestResponse> GetProductContentRaw(string productId)
-    {
-        var request = new RestRequest($"/products-uuid/{productId}");
-        return await Client.ExecuteWithErrorHandling(request);
+        var service = _factory.GetContentService(ContentTypeConstants.Product);
+        await service.UploadContent(input.ProductId, locale.Locale, channelInput.ChannelCode, contentData);
     }
 }

@@ -38,7 +38,15 @@ Before you can connect you need to make sure that:
 
 ## Actions
 
-### General
+### Content
+
+- **Search content** return a list of different types of content.
+- **Download content** downloads content to a file.
+- **Upload content** upload content from a file.
+
+> **Note**: These actions support products and product models.
+
+### Locales
 
 - **Get all locales** returns a list of locale codes that are available on this Akeneo instance. *Note*: Akeneo does not have a default locale.
 
@@ -66,8 +74,8 @@ Before you can connect you need to make sure that:
 -   **Delete product** deletes a specific product.
 -   **Get product info** returns details about a specific product.
 -   **Update product info** updates details of a specific product.
--   **Download product content** returns all localizable product values for a specified locale in an HTML format (by default). When translated, this file can be used by the **Upload product content** action to upload translations to Akeneo. Optionally this method can also output raw json files of the product structure.
--   **Upload product content** updates product content values from a translated or otherwise processed file that originated from the action above. Also accepts json files.
+-   **Download product content** downloads product content to a file.
+-   **Upload product content** uploads product content from a file.
 
 ### Product models
 
@@ -75,17 +83,26 @@ Before you can connect you need to make sure that:
 -   **Delete product model** deletes a specific product model.
 -   **Get product model info** returns details about a specific product model.
 -   **Update product model info** updates details of a specific product model.
--   **Download product model content** returns all localizable product model values for a specified locale in an HTML format.
--   **Upload product model content** updates product model content values from a provided file.
+-   **Download product model content** downloads product model content to a file.
+-   **Upload product model content** uploads product model content values from a provided file.
 
 All products and product models return information about categories. You can use this to make detailed decisions on localization strategies.
 
 ## Events
 
+### Content
+
+-   **On content created or updated** triggers whenever content is created or updated.
+
+> **Note**: This event supports products and product models.
+
 ### Products
 
--   **On products created or updated** triggers when new products are created or updated. You can filter by locale and categories.
--   **On product models created or updated** triggers when any product models are created or updated. You can filter by locale and categories.
+-   **On products created or updated** triggers whenever new products are created or updated
+
+### Product models
+
+-   **On product models created or updated** triggers whenever product models are created or updated
 
 ## Example
 

@@ -2,6 +2,9 @@
 using Apps.Akeneo.DataSource;
 using Apps.Akeneo.Models.Request.Attribute;
 using Blackbird.Applications.Sdk.Common.Dynamic;
+using Apps.Akeneo.Models.Request;
+using Apps.Akeneo.Models.Request.Content;
+using Apps.Akeneo.Constants;
 
 namespace Tests.Akeneo;
 
@@ -103,6 +106,22 @@ public class DataSource : TestBase
 
         // Act
         var result = await handler.GetDataAsync(new(), default);
+
+        // Assert
+        PrintDataHandlerResult(result);
+        Assert.IsNotNull(result);
+    }
+
+    [TestMethod]
+    public async Task ContentDataSourceHandler_ReturnsContentItems()
+    {
+        // Arrange
+        var locale = new LocaleRequest { Locale = "en_US" };
+        var contentType = new ContentRequest { ContentType = ContentTypeConstants.Product };
+        var handler = new ContentDataSourceHandler(InvocationContext, contentType, locale);
+
+        // Act
+        var result = await handler.GetDataAsync(new() { SearchString = "" } , default);
 
         // Assert
         PrintDataHandlerResult(result);
