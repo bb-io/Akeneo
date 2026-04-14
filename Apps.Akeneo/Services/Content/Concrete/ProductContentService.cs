@@ -1,6 +1,5 @@
 ﻿using Apps.Akeneo.Constants;
 using Apps.Akeneo.Conversion.Product;
-using Apps.Akeneo.Extensions;
 using Apps.Akeneo.Invocables;
 using Apps.Akeneo.Models.Entities;
 using Apps.Akeneo.Models.Queries;
@@ -59,38 +58,12 @@ public class ProductContentService(InvocationContext invocationContext, IFileMan
         string? fileType,
         DownloadContentRequest downloadInput)
     {
-        FileReference fileReference;
         var product = await GetProductContent(input.ContentId);
 
-        switch (fileType)
-        {
-            case null or "text/html":
-                var htmlStream = ProductHtmlConverter.ToOutputStream(
-                    product,
-                    locale,
-                    channelInput,
-                    downloadInput.IgnoreNonScopable ?? false);
+        var factory = new ProductConverterFactory(fileManagementClient);
+        var service = factory.Create(fileType);
 
-                string htmlFileName = input.ContentId.ToFileName("html");
-                fileReference = await fileManagementClient.UploadAsync(htmlStream, MediaTypeNames.Text.Html, htmlFileName);
-                break;
-
-            case "original":
-                var stream = ProductJsonConverter.ToOutputStream(
-                    product,
-                    locale,
-                    channelInput,
-                    downloadInput.IgnoreNonScopable ?? false);
-
-                string jsonFileName = input.ContentId.ToFileName("json");
-                fileReference = await fileManagementClient.UploadAsync(stream, MediaTypeNames.Application.Json, jsonFileName);
-                break;
-
-            default:
-                throw new PluginMisconfigurationException($"This content type is not supported: {fileType}");
-        }
-
-        return fileReference;
+        return await service.ToOutputFile(product, locale, channelInput, downloadInput.IgnoreNonScopable ?? false);
     }
 
     public async Task UploadContent(string? contentId, string locale, string? channelInput, DetectedContent detectedContent)

@@ -1,16 +1,19 @@
-﻿using Apps.Akeneo.Helper;
+﻿using Apps.Akeneo.Extensions;
+using Apps.Akeneo.Helper;
 using Apps.Akeneo.Models.Entities;
 using Blackbird.Applications.Sdk.Common.Exceptions;
+using Blackbird.Applications.Sdk.Common.Files;
+using Blackbird.Applications.SDK.Extensions.FileManagement.Interfaces;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Net.Mime;
 using System.Text;
 
 namespace Apps.Akeneo.Conversion.Product;
 
-public static class ProductJsonConverter
+public class ProductJsonConverter(IFileManagementClient fileManagementClient) : IProductConverter
 {
-    public static Stream ToOutputStream<T>(T productContent, string locale, string? scope, bool ignoreNonScopable)
-        where T : IContentEntity
+    public async Task<FileReference> ToOutputFile(IContentEntity productContent, string locale, string? scope, bool ignoreNonScopable)
     {
         if (productContent.Values != null)
         {
@@ -39,7 +42,9 @@ public static class ProductJsonConverter
         jObject.AddFirst(new JProperty("content_type", contentType));
 
         var jsonBytes = Encoding.UTF8.GetBytes(jObject.ToString(Formatting.Indented));
-        return new MemoryStream(jsonBytes);
+        var jsonStream = new MemoryStream(jsonBytes);
+        string jsonFileName = productContent.Id.ToFileName("json");
+        return await fileManagementClient.UploadAsync(jsonStream, MediaTypeNames.Application.Json, jsonFileName);
     }
 
     public static T UpdateFromJson<T>(string jsonContent, string? locale, string? channel)

@@ -3,15 +3,18 @@ using Apps.Akeneo.Helper;
 using Apps.Akeneo.HtmlConversion;
 using Apps.Akeneo.Models.Entities;
 using Blackbird.Applications.Sdk.Common.Exceptions;
+using Blackbird.Applications.Sdk.Common.Files;
+using Blackbird.Applications.SDK.Extensions.FileManagement.Interfaces;
 using HtmlAgilityPack;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Net.Mime;
 using System.Text;
 using System.Web;
 
 namespace Apps.Akeneo.Conversion.Product;
 
-public static class ProductHtmlConverter
+public class ProductHtmlConverter(IFileManagementClient fileManagementClient) : IProductConverter
 {
     private const string ValueNameAttribute = "name";
     private const string ValueScopeAttribute = "scope";
@@ -21,7 +24,7 @@ public static class ProductHtmlConverter
     private const string ArrayType = "array";
     private const string TableType = "table";
 
-    public static Stream ToOutputStream(IContentEntity product, string locale, string? scope, bool ignoreNonScopable)
+    public async Task<FileReference> ToOutputFile(IContentEntity product, string locale, string? scope, bool ignoreNonScopable)
     {
         var (doc, body) = PrepareEmptyHtmlDocument();
         string contentType = ContentTypeDetector.DetectFromType(product);
@@ -52,7 +55,9 @@ public static class ProductHtmlConverter
         doc.DocumentNode.FirstChild.SetAttributeValue(ResourceIdAttribute, product.Id);
 
         var htmlBytes = Encoding.UTF8.GetBytes(doc.DocumentNode.OuterHtml);
-        return new MemoryStream(htmlBytes);
+        var htmlStream = new MemoryStream(htmlBytes);
+        string htmlFileName = product.Id.ToFileName("html");
+        return await fileManagementClient.UploadAsync(htmlStream, MediaTypeNames.Text.Html, htmlFileName);
     }
 
     public static T UpdateFromHtml<T>(T product, string locale, HtmlDocument doc, string? channel) 
