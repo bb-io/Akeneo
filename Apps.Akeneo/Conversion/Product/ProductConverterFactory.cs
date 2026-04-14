@@ -1,15 +1,15 @@
-﻿using Blackbird.Applications.SDK.Extensions.FileManagement.Interfaces;
+﻿using System.Net.Mime;
 
 namespace Apps.Akeneo.Conversion.Product;
 
-public class ProductConverterFactory(IFileManagementClient fileManagementClient)
+public static class ProductConverterFactory
 {
-    public IProductConverter Create(string? fileFormat)
+    public static IProductConverter GetConverter(string? fileFormat)
     {
         return fileFormat switch
         {
-            null or "text/html" => new ProductHtmlConverter(fileManagementClient),
-            "original" => new ProductJsonConverter(fileManagementClient),
+            null or MediaTypeNames.Text.Html => new ProductHtmlConverter(),
+            MediaTypeNames.Application.Json => new ProductJsonConverter(),
             _ => throw new Exception($"Unsupported file format '{fileFormat}' was passed to ProductConverterFactory")
         };
     }

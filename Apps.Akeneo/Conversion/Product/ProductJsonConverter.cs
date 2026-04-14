@@ -11,9 +11,14 @@ using System.Text;
 
 namespace Apps.Akeneo.Conversion.Product;
 
-public class ProductJsonConverter(IFileManagementClient fileManagementClient) : IProductConverter
+public class ProductJsonConverter : IProductConverter
 {
-    public async Task<FileReference> ToOutputFile(IContentEntity productContent, string locale, string? scope, bool ignoreNonScopable)
+    public async Task<FileReference> ToOutputFile(
+        IContentEntity productContent,
+        string locale, 
+        string? scope, 
+        bool ignoreNonScopable,
+        IFileManagementClient fileManagementClient)
     {
         if (productContent.Values != null)
         {
@@ -47,10 +52,12 @@ public class ProductJsonConverter(IFileManagementClient fileManagementClient) : 
         return await fileManagementClient.UploadAsync(jsonStream, MediaTypeNames.Application.Json, jsonFileName);
     }
 
-    public static T UpdateFromJson<T>(string jsonContent, string? locale, string? channel)
-        where T : IContentEntity
+    public IContentEntity UpdateFromFile(object inputFile, string? contentId, string locale, string? scope)
     {
-        var updatedProduct = JsonConvert.DeserializeObject<T>(jsonContent) ??
+        string jsonContent = inputFile as string ?? 
+            throw new PluginMisconfigurationException("Could not convert JSON payload to string");
+
+        var updatedProduct = JsonConvert.DeserializeObject<ProductContentEntity>(jsonContent) ??
             throw new PluginMisconfigurationException("Could not deserialize input JSON payload");
 
         foreach (var kvp in updatedProduct.Values)
@@ -60,8 +67,8 @@ public class ProductJsonConverter(IFileManagementClient fileManagementClient) : 
                 if (value.Locale != null && !string.IsNullOrWhiteSpace(locale))
                     value.Locale = locale;
 
-                if (value.Scope != null && !string.IsNullOrWhiteSpace(channel))
-                    value.Scope = channel;
+                if (value.Scope != null && !string.IsNullOrWhiteSpace(scope))
+                    value.Scope = scope;
             }
 
             updatedProduct.Values[kvp.Key] = kvp.Value
@@ -70,6 +77,7 @@ public class ProductJsonConverter(IFileManagementClient fileManagementClient) : 
                 .ToArray();
         }
 
+        updatedProduct.Id = contentId ?? updatedProduct.Id;
         return updatedProduct;
     }
 }

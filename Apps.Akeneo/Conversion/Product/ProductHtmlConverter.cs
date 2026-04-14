@@ -14,7 +14,7 @@ using System.Web;
 
 namespace Apps.Akeneo.Conversion.Product;
 
-public class ProductHtmlConverter(IFileManagementClient fileManagementClient) : IProductConverter
+public class ProductHtmlConverter : IProductConverter
 {
     private const string ValueNameAttribute = "name";
     private const string ValueScopeAttribute = "scope";
@@ -24,7 +24,12 @@ public class ProductHtmlConverter(IFileManagementClient fileManagementClient) : 
     private const string ArrayType = "array";
     private const string TableType = "table";
 
-    public async Task<FileReference> ToOutputFile(IContentEntity product, string locale, string? scope, bool ignoreNonScopable)
+    public async Task<FileReference> ToOutputFile(
+        IContentEntity product, 
+        string locale,
+        string? scope,
+        bool ignoreNonScopable,
+        IFileManagementClient fileManagementClient)
     {
         var (doc, body) = PrepareEmptyHtmlDocument();
         string contentType = ContentTypeDetector.DetectFromType(product);
@@ -60,31 +65,21 @@ public class ProductHtmlConverter(IFileManagementClient fileManagementClient) : 
         return await fileManagementClient.UploadAsync(htmlStream, MediaTypeNames.Text.Html, htmlFileName);
     }
 
-    public static T UpdateFromHtml<T>(T product, string locale, HtmlDocument doc, string? channel) 
-        where T : IContentEntity
+    public IContentEntity UpdateFromFile(object inputFile, string? contentId, string locale, string? scope)
     {
+        var doc = inputFile as HtmlDocument ??
+            throw new PluginMisconfigurationException("Could not convert HTML content to HtmlDoc");
+
+        string productId = contentId ?? GetResourceId(doc);
+
+        var partialValues = new Dictionary<string, ProductValueEntity[]>();
         var valueNodes = doc.DocumentNode.SelectSingleNode("//body").ChildNodes
-            .Where(x => x.Attributes[ValueNameAttribute]?.Value is not null)
-            .ToArray();
+            .Where(x => x.Attributes[ValueNameAttribute]?.Value is not null);
 
         foreach (var valueNode in valueNodes)
         {
-            var attributeName = valueNode.Attributes[ValueNameAttribute].Value; 
-            var htmlScope = valueNode.Attributes[ValueScopeAttribute]?.Value;
-            var nodeScope = channel ?? htmlScope;
-
-            if (nodeScope != null && product.Values.TryGetValue(attributeName, out var existingValues) && 
-                existingValues.Length > 0)
-            {
-                var isScopable = existingValues.Any(x => x.Scope != null);
-                if (!isScopable)
-                {
-                    throw new PluginMisconfigurationException(
-                        $"The attribute '{attributeName}' is not scopable - it cannot be updated for a specific channel. " +
-                        $"To upload content without these attributes, " +
-                        $"set the 'Ignore global non-scopable attributes' input to true when downloading content");
-                }
-            }
+            var attributeName = valueNode.Attributes[ValueNameAttribute].Value;
+            var nodeScope = scope ?? valueNode.Attributes[ValueScopeAttribute]?.Value;
 
             object nodeData = valueNode.Attributes[ValueTypeAttribute]?.Value switch
             {
@@ -93,30 +88,27 @@ public class ProductHtmlConverter(IFileManagementClient fileManagementClient) : 
                 _ => valueNode.InnerHtml.Trim().Trim('\"')
             };
 
-            if (!product.Values.ContainsKey(attributeName))
-                product.Values[attributeName] = [];
-
-            var valuesList = product.Values[attributeName];
-            var valueEntity = valuesList.FirstOrDefault(x => x.Locale == locale && x.Scope == nodeScope);
-
-            if (valueEntity != null)
-                valueEntity.Data = nodeData;
-            else
+            var newValue = new ProductValueEntity
             {
-                var newValue = new ProductValueEntity
-                {
-                    Locale = locale,
-                    Scope = nodeScope,
-                    Data = nodeData
-                };
+                Locale = locale,
+                Scope = nodeScope,
+                Data = nodeData
+            };
 
-                product.Values[attributeName] = valuesList.Append(newValue).ToArray();
-            }
+            if (!partialValues.ContainsKey(attributeName))
+                partialValues[attributeName] = [newValue];
+            else
+                partialValues[attributeName] = partialValues[attributeName].Append(newValue).ToArray();
         }
 
+        var product = new ProductContentEntity 
+        { 
+            Values = partialValues,
+            Id = contentId ?? productId
+        };
         return product;
     }
-    
+
     public static string GetResourceId(HtmlDocument doc)
     {
         return doc.DocumentNode.FirstChild.Attributes[ResourceIdAttribute]?.Value ?? string.Empty;

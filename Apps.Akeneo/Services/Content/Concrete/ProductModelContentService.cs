@@ -12,9 +12,7 @@ using Blackbird.Applications.Sdk.Common.Files;
 using Blackbird.Applications.Sdk.Common.Invocation;
 using Blackbird.Applications.Sdk.Utils.Extensions.Http;
 using Blackbird.Applications.SDK.Extensions.FileManagement.Interfaces;
-using HtmlAgilityPack;
 using RestSharp;
-using System.Net.Mime;
 
 namespace Apps.Akeneo.Services.Content.Concrete;
 
@@ -60,48 +58,32 @@ public class ProductModelContentService(InvocationContext invocationContext, IFi
     {
         var productModel = await GetProductModelContent(input.ContentId);
 
-        var factory = new ProductConverterFactory(fileManagementClient);
-        var service = factory.Create(fileType);
+        var service = ProductConverterFactory.GetConverter(fileType);
 
-        return await service.ToOutputFile(productModel, locale, channelInput, downloadInput.IgnoreNonScopable ?? false);
+        return await service.ToOutputFile(
+            productModel,
+            locale,
+            channelInput,
+            downloadInput.IgnoreNonScopable ?? false,
+            fileManagementClient);
     }
 
     public async Task UploadContent(string? contentId, string locale, string? channelInput, DetectedContent detectedContent)
     {
-        ProductModelContentEntity updatedProduct;
-        string productId;
+        var service = ProductConverterFactory.GetConverter(detectedContent.FileFormat);
+
+        var updatedProduct = service.UpdateFromFile(detectedContent.Payload, contentId, locale, channelInput)
+            as ProductModelContentEntity ??
+            throw new PluginMisconfigurationException("Updated content is empty");
 
         if (detectedContent.Payload is null)
             throw new PluginMisconfigurationException("Deserialized content is null");
-
-        switch (detectedContent.FileFormat)
-        {
-            case MediaTypeNames.Text.Html:
-                var htmlDoc = detectedContent.Payload as HtmlDocument ??
-                    throw new PluginMisconfigurationException("Could not convert HTML content to HtmlDoc");
-
-                productId = contentId ?? ProductHtmlConverter.GetResourceId(htmlDoc);
-                var product = await GetProductModelContent(productId);
-                updatedProduct = ProductHtmlConverter.UpdateFromHtml(product, locale, htmlDoc, channelInput);
-                break;
-
-            case MediaTypeNames.Application.Json:
-                string jsonContent = detectedContent.Payload as string ??
-                    throw new PluginMisconfigurationException("Could not convert JSON payload to string");
-
-                updatedProduct = ProductJsonConverter.UpdateFromJson<ProductModelContentEntity>(jsonContent, locale, channelInput);
-                productId = contentId ?? updatedProduct.Id;
-                break;
-
-            default:
-                throw new PluginMisconfigurationException($"This file format is not supported: {detectedContent.ContentType}");
-        }
 
         updatedProduct.Values = updatedProduct.Values
             .Where(x => x.Value.All(y => y.Locale != null && y.Scope != null))
             .ToDictionary();
 
-        var request = new RestRequest($"/product-models/{productId}", Method.Patch)
+        var request = new RestRequest($"/product-models/{updatedProduct.Id}", Method.Patch)
             .WithJsonBody(new UpdateProductModelRequest(updatedProduct), JsonConfig.Settings);
 
         await Client.ExecuteWithErrorHandling(request);

@@ -1,10 +1,11 @@
-﻿using Tests.Akeneo.Base;
-using Apps.Akeneo.Actions;
+﻿using Apps.Akeneo.Actions;
 using Apps.Akeneo.Models;
 using Apps.Akeneo.Models.Request;
+using Apps.Akeneo.Models.Request.Channel;
 using Apps.Akeneo.Models.Request.ProductModel;
 using Blackbird.Applications.Sdk.Common.Files;
-using Apps.Akeneo.Models.Request.Channel;
+using System.Net.Mime;
+using Tests.Akeneo.Base;
 
 namespace Tests.Akeneo;
 
@@ -34,7 +35,7 @@ public class ProductModelTests : TestBase
         // Arrange
         var input = new ProductModelRequest { ProductModelCode = "Milwaukee Mens Black No Days Off Hooded Sweatshirt" };
         var locale = new LocaleRequest { Locale = "en_US" };
-        var fileType = new OptionalFileTypeHandler { FileType = "original" };
+        var fileType = new OptionalFileTypeHandler { FileType = MediaTypeNames.Application.Json };
         var channel = new OptionalChannelRequest { ChannelCode = "ecommerce" };
         var downloadInput = new DownloadProductModelRequest { IgnoreNonScopable = true };
 
