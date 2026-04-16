@@ -65,7 +65,8 @@ public class ProductHtmlConverter : IProductConverter
         return await fileManagementClient.UploadAsync(htmlStream, MediaTypeNames.Text.Html, htmlFileName);
     }
 
-    public IContentEntity UpdateFromFile(object inputFile, string? contentId, string locale, string? scope)
+    public T UpdateFromFile<T>(object inputFile, string? contentId, string locale, string? scope)
+        where T : IContentEntity, new()
     {
         var doc = inputFile as HtmlDocument ??
             throw new PluginMisconfigurationException("Could not convert HTML content to HtmlDoc");
@@ -101,7 +102,7 @@ public class ProductHtmlConverter : IProductConverter
                 partialValues[attributeName] = partialValues[attributeName].Append(newValue).ToArray();
         }
 
-        var product = new ProductContentEntity 
+        var product = new T
         { 
             Values = partialValues,
             Id = contentId ?? productId

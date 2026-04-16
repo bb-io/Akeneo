@@ -52,12 +52,13 @@ public class ProductJsonConverter : IProductConverter
         return await fileManagementClient.UploadAsync(jsonStream, MediaTypeNames.Application.Json, jsonFileName);
     }
 
-    public IContentEntity UpdateFromFile(object inputFile, string? contentId, string locale, string? scope)
+    public T UpdateFromFile<T>(object inputFile, string? contentId, string locale, string? scope)
+        where T : IContentEntity, new()
     {
         string jsonContent = inputFile as string ?? 
             throw new PluginMisconfigurationException("Could not convert JSON payload to string");
 
-        var updatedProduct = JsonConvert.DeserializeObject<ProductContentEntity>(jsonContent) ??
+        var updatedProduct = JsonConvert.DeserializeObject<T>(jsonContent) ??
             throw new PluginMisconfigurationException("Could not deserialize input JSON payload");
 
         foreach (var kvp in updatedProduct.Values)

@@ -33,7 +33,7 @@ public class ProductModelTests : TestBase
     public async Task DownloadProductModelContent_IsSuccess()
     {
         // Arrange
-        var input = new ProductModelRequest { ProductModelCode = "Milwaukee Mens Black No Days Off Hooded Sweatshirt" };
+        var input = new ProductModelRequest { ProductModelCode = "Cambridge Brown Wicker Outdoor Patio Lounge Chair with CushionGuard Cushions" };
         var locale = new LocaleRequest { Locale = "en_US" };
         var fileType = new OptionalFileTypeHandler { FileType = MediaTypeNames.Application.Json };
         var channel = new OptionalChannelRequest { ChannelCode = "ecommerce" };
@@ -48,13 +48,13 @@ public class ProductModelTests : TestBase
     }
 
     [TestMethod]
-    public async Task UpdateProductModelHtml_IsSuccess()
+    public async Task UploadProductModelContent_IsSuccess()
     {
         // Arrange
         var productModel = new ProductModelOptionalRequest { };
         var locale = new LocaleRequest { Locale = "fr_FR" };
-        var file = new FileModel { File = new FileReference { Name = "test.html" } };
-        var channel = new OptionalChannelRequest { ChannelCode = "print" };
+        var file = new FileModel { File = new FileReference { Name = "test.json" } };
+        var channel = new OptionalChannelRequest { };
 
         // Act
         await Actions.UpdateProductModelHtml(productModel, locale, channel, file);

@@ -12,5 +12,6 @@ public interface IProductConverter
         string? scope, 
         bool ignoreNonScopable,
         IFileManagementClient fileManagementClient);
-    IContentEntity UpdateFromFile(object inputFile, string? contentId, string locale, string? scope);
+    T UpdateFromFile<T>(object inputFile, string? contentId, string locale, string? scope)
+        where T : IContentEntity, new();
 }
