@@ -72,8 +72,7 @@ public class ProductContentService(InvocationContext invocationContext, IFileMan
     {
         var service = ProductConverterFactory.GetConverter(detectedContent.FileFormat);
 
-        var updatedProduct = service.UpdateFromFile(detectedContent.Payload, contentId, locale, channelInput) 
-            as ProductContentEntity ??
+        var updatedProduct = service.UpdateFromFile<ProductContentEntity>(detectedContent.Payload, contentId, locale, channelInput) ??
             throw new PluginMisconfigurationException("Updated content is empty");
 
         updatedProduct.Values = updatedProduct.Values
