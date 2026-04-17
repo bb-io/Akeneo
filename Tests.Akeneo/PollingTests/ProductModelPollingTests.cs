@@ -1,4 +1,5 @@
-﻿using Apps.Akeneo.Polling;
+﻿using Apps.Akeneo.Models.Request;
+using Apps.Akeneo.Polling;
 using Apps.Akeneo.Polling.Models.Memory;
 using Apps.Akeneo.Polling.Models.Request;
 using Blackbird.Applications.Sdk.Common.Polling;
@@ -19,10 +20,11 @@ public class ProductModelPollingTests : TestBase
         {
             Memory = new DateMemory { LastInteractionDate = DateTime.UtcNow.AddDays(-1) }
         };
+        var locale = new LocaleRequest { Locale = "de_DE" };
         var input = new ProductModelFilter { };
 
         // Act
-        var result = await Polling.OnProductModelsCreatedOrUpdated(request, input);
+        var result = await Polling.OnProductModelsCreatedOrUpdated(request, input, locale);
 
         // Assert
         PrintJsonResult(result);

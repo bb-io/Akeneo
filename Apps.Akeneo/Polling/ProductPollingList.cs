@@ -2,6 +2,7 @@
 using Apps.Akeneo.Invocables;
 using Apps.Akeneo.Models.Entities;
 using Apps.Akeneo.Models.Queries;
+using Apps.Akeneo.Models.Request;
 using Apps.Akeneo.Models.Response.Product;
 using Apps.Akeneo.Polling.Models.Memory;
 using Apps.Akeneo.Polling.Models.Request;
@@ -18,7 +19,8 @@ public class ProductPollingList(InvocationContext invocationContext) : AkeneoInv
     [PollingEvent("On products created or updated", "This event triggers whenever products are created or updated")]
     public async Task<PollingEventResponse<DateMemory, ListProductResponse>> OnProductsCreatedOrUpdated(
         PollingEventRequest<DateMemory> input, 
-        [PollingEventParameter] ProductFilter filter)
+        [PollingEventParameter] ProductFilter filter,
+        [PollingEventParameter] LocaleRequest localeInput)
     {
         if (input.Memory is null)
             return PollingHelper.NoFlight<ListProductResponse>();
@@ -39,6 +41,7 @@ public class ProductPollingList(InvocationContext invocationContext) : AkeneoInv
             throw new PluginMisconfigurationException("Search query is empty. Check filters/memory.");
 
         request.AddQueryParameter("search", query.ToString());
+        request.AddQueryParameter("locales", localeInput.Locale);
 
         var products = await Client.Paginate<ProductEntity>(request);
 
