@@ -50,7 +50,7 @@ public class ProductModelPollingList(InvocationContext invocationContext) : Aken
             }
         }
 
-        if (models.Count == 0)
+        if (triggeredModels.Count == 0)
             return PollingHelper.NoFlight<ListProductModelResponse>(input.Memory);
 
         return PollingHelper.TriggerFlight<ListProductModelResponse>(new(triggeredModels), input.Memory);
