@@ -16,9 +16,9 @@ public class ProductModelPollingTests : TestBase
     public async Task OnProductModelsCreatedOrUpdated_ReturnsProductModels()
     {
         // Arrange
-        var request = new PollingEventRequest<DateMemory>
+        var request = new PollingEventRequest<HashMemory>
         {
-            Memory = new DateMemory { LastInteractionDate = DateTime.UtcNow.AddDays(-1) }
+            Memory = new HashMemory { ContentHashes = [] }
         };
         var locale = new LocaleRequest { Locale = "de_DE" };
         var input = new ProductModelFilter { };

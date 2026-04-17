@@ -14,6 +14,18 @@ public static class PollingHelper
         };
     }
 
+    public static PollingEventResponse<HashMemory, T> NoFlight<T>(HashMemory? currentMemory)
+    {
+        currentMemory ??= new HashMemory();
+        currentMemory.LastInteractionDate = DateTime.UtcNow;
+
+        return new()
+        {
+            FlyBird = false,
+            Memory = currentMemory
+        };
+    }
+
     public static PollingEventResponse<DateMemory, T> TriggerFlight<T>(T result)
     {
         return new()
@@ -21,6 +33,18 @@ public static class PollingHelper
             FlyBird = true,
             Result = result,
             Memory = new() { LastInteractionDate = DateTime.UtcNow }
+        };
+    }
+
+    public static PollingEventResponse<HashMemory, T> TriggerFlight<T>(T result, HashMemory currentMemory)
+    {
+        currentMemory.LastInteractionDate = DateTime.UtcNow;
+
+        return new()
+        {
+            FlyBird = true,
+            Result = result,
+            Memory = currentMemory
         };
     }
 }
