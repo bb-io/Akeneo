@@ -1,4 +1,5 @@
-﻿using Apps.Akeneo.Invocables;
+﻿using Apps.Akeneo.Extensions;
+using Apps.Akeneo.Invocables;
 using Apps.Akeneo.Models.Request;
 using Apps.Akeneo.Models.Request.Content;
 using Apps.Akeneo.Services.Content;
@@ -27,6 +28,8 @@ public class ContentDataSourceHandler(
 
         var service = _factory.GetContentService(contentInput.ContentType);
         var items = await service.SearchContentMinimal(localeInput.Locale, context.SearchString);
-        return items.Items.Select(x => new DataSourceItem(x.ContentId, x.ContentName ?? x.ContentId)).ToList();
+        
+        var castedItems = items.CastToEntities(localeInput.Locale);
+        return castedItems.Select(x => new DataSourceItem(x.ContentId, x.ContentName ?? x.ContentId)).ToList();
     }
 }

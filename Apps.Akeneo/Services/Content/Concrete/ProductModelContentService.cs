@@ -5,7 +5,6 @@ using Apps.Akeneo.Models.Entities;
 using Apps.Akeneo.Models.Queries;
 using Apps.Akeneo.Models.Request.Content;
 using Apps.Akeneo.Models.Request.ProductModel;
-using Apps.Akeneo.Models.Response.Content;
 using Apps.Akeneo.Models.Utility;
 using Blackbird.Applications.Sdk.Common.Exceptions;
 using Blackbird.Applications.Sdk.Common.Files;
@@ -35,7 +34,7 @@ public class ProductModelContentService(InvocationContext invocationContext, IFi
         return await Client.Paginate<ProductModelContentEntity>(request);
     }
 
-    public async Task<SearchContentResponse> SearchContentMinimal(string locale, string? nameContains)
+    public async Task<IEnumerable<IContentEntity>> SearchContentMinimal(string locale, string? nameContains)
     {
         var query = new SearchQuery();
         query.Add("identifier", new QueryOperator { Operator = "CONTAINS", Value = nameContains, Locale = locale });
@@ -44,8 +43,7 @@ public class ProductModelContentService(InvocationContext invocationContext, IFi
         request.AddQueryParameter("locales", locale);
         request.AddQueryParameter("search", query.ToString());
 
-        var products = await Client.PaginateOnce<ProductModelEntity>(request);
-        return new(products.Select(x => new GetContentResponse(x)).ToList());
+        return await Client.PaginateOnce<ProductModelContentEntity>(request);
     }
 
     public async Task<FileReference> DownloadContent(
