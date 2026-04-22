@@ -18,8 +18,16 @@ public static class PollingFilterHelper
             string currentHash = ContentHashHelper.GenerateContentHash(entity.Values);
 
             bool isInMemory = memory.ContentHashes.TryGetValue(entityId, out string? previousHash);
-            
-            if (isInMemory)
+            bool isGenuinelyNew = entity.Created >= memory.LastInteractionDate;
+
+            if (isGenuinelyNew)
+            {
+                if (HasDataForLocale(entity, targetLocale))
+                    triggeredEntities.Add(entity);
+                
+                memory.ContentHashes[entityId] = currentHash;
+            }
+            else if (isInMemory)
             {
                 if (previousHash == currentHash) 
                     continue;
@@ -27,13 +35,8 @@ public static class PollingFilterHelper
                 triggeredEntities.Add(entity);
                 memory.ContentHashes[entityId] = currentHash;
             }
-            else 
-            {
-                if (HasDataForLocale(entity, targetLocale))
-                    triggeredEntities.Add(entity);
-                
+            else
                 memory.ContentHashes[entityId] = currentHash;
-            }
         }
 
         return triggeredEntities;
