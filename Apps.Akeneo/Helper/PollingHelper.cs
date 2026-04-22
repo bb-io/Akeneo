@@ -28,4 +28,23 @@ public static class PollingHelper
             Memory = currentMemory
         };
     }
+    
+    public static PollingEventResponse<DateMemory, T> NoFlight<T>()
+    {
+        return new()
+        {
+            FlyBird = false,
+            Memory = new() { LastInteractionDate = DateTime.UtcNow }
+        };
+    }
+    
+    public static PollingEventResponse<DateMemory, T> TriggerFlight<T>(T result)
+    {
+        return new()
+        {
+            FlyBird = true,
+            Result = result,
+            Memory = new() { LastInteractionDate = DateTime.UtcNow }
+        };
+    }
 }

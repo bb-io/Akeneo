@@ -92,17 +92,18 @@ All products and product models return information about categories. You can use
 
 ### Content
 
--   **On content created or updated** triggers whenever content is created or updated.
+-   **On content created or updated** triggers whenever a content of an existing item is updated or a new item with content is created.
+-   **On content created** triggers whenever new content is created.
 
-> **Note**: This event supports products and product models.
+> **Note**: These events only support products and product models.
 
 ### Products
 
--   **On products created or updated** triggers whenever new products are created or updated
+-   **On product content created or updated** triggers whenever an existing product content is updated or a new product with content is created.
 
 ### Product models
 
--   **On product models created or updated** triggers whenever product models are created or updated
+-   **On product model content created or updated** triggers whenever an existing product model content is updated or a new product model with content is created.
 
 ## Example
 

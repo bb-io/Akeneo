@@ -32,4 +32,22 @@ public class ContentPollingTests : TestBase
         PrintJsonResult(result);
         Assert.IsNotNull(result);
     }
+
+    [TestMethod]
+    public async Task OnContentCreated_ReturnsContent()
+    {
+        // Arrange
+        var request = new PollingEventRequest<DateMemory>
+        {
+            Memory = new DateMemory { LastInteractionDate = DateTime.UtcNow - TimeSpan.FromHours(1) }
+        };
+        var contentTypes = new ContentTypesRequest { ContentTypes = [] };
+
+        // Act
+        var result = await Polling.OnContentCreated(request, contentTypes);
+
+        // Assert
+        PrintJsonResult(result);
+        Assert.IsNotNull(result);
+    }
 }

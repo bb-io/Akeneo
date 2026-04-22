@@ -1,5 +1,6 @@
 ﻿using Apps.Akeneo.Constants;
 using Apps.Akeneo.Conversion.Product;
+using Apps.Akeneo.Extensions;
 using Apps.Akeneo.Invocables;
 using Apps.Akeneo.Models.Entities;
 using Apps.Akeneo.Models.Queries;
@@ -28,7 +29,7 @@ public class ProductModelContentService(InvocationContext invocationContext, IFi
         query.AddDateBefore("updated", input.UpdatedBefore);
 
         var request = new RestRequest("product-models");
-        request.AddQueryParameter("locales", locale);
+        request.AddQueryParameterIfNotNull("locales", locale);
         request.AddQueryParameter("search", query.ToString());
 
         return await Client.Paginate<ProductModelContentEntity>(request);
@@ -40,7 +41,7 @@ public class ProductModelContentService(InvocationContext invocationContext, IFi
         query.Add("identifier", new QueryOperator { Operator = "CONTAINS", Value = nameContains, Locale = locale });
 
         var request = new RestRequest("product-models");
-        request.AddQueryParameter("locales", locale);
+        request.AddQueryParameterIfNotNull("locales", locale);
         request.AddQueryParameter("search", query.ToString());
 
         return await Client.PaginateOnce<ProductModelContentEntity>(request);
