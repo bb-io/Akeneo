@@ -23,7 +23,7 @@ public class ProductModelPollingList(InvocationContext invocationContext) : Aken
     {
         if (input.Memory is null)
             return PollingHelper.NoFlight<ListProductModelResponse>(input.Memory);
-
+        
         var query = new SearchQuery();
         query.AddDateAfter("updated", input.Memory.LastInteractionDate);
 
@@ -35,24 +35,12 @@ public class ProductModelPollingList(InvocationContext invocationContext) : Aken
         request.AddQueryParameter("locales", localeInput.Locale);
 
         var models = await Client.Paginate<ProductModelContentEntity>(request);
-        var triggeredModels = new List<ProductModelEntity>();
-
-        foreach (var model in models)
-        {
-            string modelId = model.Id;
-            string currentHash = ContentHashHelper.GenerateContentHash(model.Values);
-
-            bool isBrandNewProduct = !input.Memory.ContentHashes.TryGetValue(modelId, out string? previousHash);
-            if (isBrandNewProduct || previousHash != currentHash)
-            {
-                triggeredModels.Add(model);
-                input.Memory.ContentHashes[modelId] = currentHash;
-            }
-        }
+        var triggeredModels = PollingFilterHelper.GetChangedEntities(models, input.Memory);
 
         if (triggeredModels.Count == 0)
             return PollingHelper.NoFlight<ListProductModelResponse>(input.Memory);
 
-        return PollingHelper.TriggerFlight<ListProductModelResponse>(new(triggeredModels), input.Memory);
+        var finalResponseList = triggeredModels.Cast<ProductModelEntity>().ToList();
+        return PollingHelper.TriggerFlight<ListProductModelResponse>(new(finalResponseList), input.Memory);
     }
 }
