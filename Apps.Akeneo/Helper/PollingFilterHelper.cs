@@ -22,7 +22,9 @@ public static class PollingFilterHelper
 
             if (isGenuinelyNew)
             {
-                triggeredEntities.Add(entity);
+                if (HasDataForLocale(entity, targetLocale))
+                    triggeredEntities.Add(entity);
+                
                 memory.ContentHashes[entityId] = currentHash;
             }
             else if (isInMemory)
@@ -33,13 +35,8 @@ public static class PollingFilterHelper
                 triggeredEntities.Add(entity);
                 memory.ContentHashes[entityId] = currentHash;
             }
-            else 
-            {
-                if (HasDataForLocale(entity, targetLocale))
-                    triggeredEntities.Add(entity);
-                
+            else
                 memory.ContentHashes[entityId] = currentHash;
-            }
         }
 
         return triggeredEntities;
