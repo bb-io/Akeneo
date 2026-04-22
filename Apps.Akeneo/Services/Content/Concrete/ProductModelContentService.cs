@@ -19,7 +19,7 @@ namespace Apps.Akeneo.Services.Content.Concrete;
 public class ProductModelContentService(InvocationContext invocationContext, IFileManagementClient fileManagementClient) 
     : AkeneoInvocable(invocationContext), IContentService
 {
-    public async Task<SearchContentResponse> SearchContent(SearchContentRequest input, string locale)
+    public async Task<IEnumerable<IContentEntity>> SearchContent(SearchContentRequest input, string locale)
     {
         var query = new SearchQuery();
         query.Add("identifier", new QueryOperator { Operator = "CONTAINS", Value = input.NameContains, Locale = locale });
@@ -32,8 +32,7 @@ public class ProductModelContentService(InvocationContext invocationContext, IFi
         request.AddQueryParameter("locales", locale);
         request.AddQueryParameter("search", query.ToString());
 
-        var products = await Client.Paginate<ProductModelEntity>(request);
-        return new(products.Select(x => new GetContentResponse(x)).ToList());
+        return await Client.Paginate<ProductModelContentEntity>(request);
     }
 
     public async Task<SearchContentResponse> SearchContentMinimal(string locale, string? nameContains)

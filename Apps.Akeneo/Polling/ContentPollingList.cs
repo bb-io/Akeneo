@@ -20,15 +20,15 @@ public class ContentPollingList(InvocationContext invocationContext) : AkeneoInv
 
     [BlueprintEventDefinition(BlueprintEvent.ContentCreatedOrUpdatedMultiple)]
     [PollingEvent("On content created or updated", "This event triggers whenever content is created or updated")]
-    public async Task<PollingEventResponse<DateMemory, OnContentCreatedOrUpdatedResponse>> OnContentCreatedOrUpdated(
-        PollingEventRequest<DateMemory> input,
+    public async Task<PollingEventResponse<HashMemory, OnContentCreatedOrUpdatedResponse>> OnContentCreatedOrUpdated(
+        PollingEventRequest<HashMemory> input,
         [PollingEventParameter] ContentTypesRequest contentTypesInput,
         [PollingEventParameter] ContentFilter filter,
         [PollingEventParameter] LocaleRequest localeInput)
     {
         if (input.Memory is null)
-            return PollingHelper.NoFlight<OnContentCreatedOrUpdatedResponse>();
-
+            return PollingHelper.NoFlight<OnContentCreatedOrUpdatedResponse>(input.Memory);
+        
         contentTypesInput.ApplyDefaultValues();
         var services = _factory.GetContentServices(contentTypesInput.ContentTypes!);
 
@@ -37,11 +37,14 @@ public class ContentPollingList(InvocationContext invocationContext) : AkeneoInv
             UpdatedAfter = input.Memory.LastInteractionDate,
             NameContains = filter.NameContains,
         };
+        
         var results = await services.ExecuteMany(searchInput, localeInput);
+        var triggeredModels = PollingFilterHelper.GetChangedEntities(results, input.Memory, localeInput.Locale);
 
-        if (results.Items.Count == 0)
-            return PollingHelper.NoFlight<OnContentCreatedOrUpdatedResponse>();
+        if (triggeredModels.Count == 0)
+            return PollingHelper.NoFlight<OnContentCreatedOrUpdatedResponse>(input.Memory);
 
-        return PollingHelper.TriggerFlight<OnContentCreatedOrUpdatedResponse>(new(results.Items));
+        var castedResults = triggeredModels.CastToEntities(localeInput.Locale).ToList();
+        return PollingHelper.TriggerFlight<OnContentCreatedOrUpdatedResponse>(new(castedResults), input.Memory);
     }
 }
