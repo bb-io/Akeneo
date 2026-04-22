@@ -35,7 +35,7 @@ public class ProductModelPollingList(InvocationContext invocationContext) : Aken
         request.AddQueryParameter("locales", localeInput.Locale);
 
         var models = await Client.Paginate<ProductModelContentEntity>(request);
-        var triggeredModels = PollingFilterHelper.GetChangedEntities(models, input.Memory);
+        var triggeredModels = PollingFilterHelper.GetChangedEntities(models, input.Memory, localeInput.Locale);
 
         if (triggeredModels.Count == 0)
             return PollingHelper.NoFlight<ListProductModelResponse>(input.Memory);

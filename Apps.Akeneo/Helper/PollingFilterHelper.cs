@@ -7,7 +7,8 @@ public static class PollingFilterHelper
 {
     public static List<IContentEntity> GetChangedEntities(
         IEnumerable<IContentEntity> fetchedEntities, 
-        HashMemory memory)
+        HashMemory memory,
+        string targetLocale)
     {
         var triggeredEntities = new List<IContentEntity>();
 
@@ -28,7 +29,7 @@ public static class PollingFilterHelper
             }
             else 
             {
-                if (entity.Values.Count > 0)
+                if (HasDataForLocale(entity, targetLocale))
                     triggeredEntities.Add(entity);
                 
                 memory.ContentHashes[entityId] = currentHash;
@@ -36,5 +37,15 @@ public static class PollingFilterHelper
         }
 
         return triggeredEntities;
+    }
+    
+    private static bool HasDataForLocale(IContentEntity entity, string targetLocale)
+    {
+        if (entity.Values.Count == 0) 
+            return false;
+
+        return entity.Values.Values
+            .SelectMany(valueArray => valueArray)
+            .Any(productValue => string.Equals(productValue.Locale, targetLocale, StringComparison.OrdinalIgnoreCase));
     }
 }
