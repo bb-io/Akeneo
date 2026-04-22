@@ -17,13 +17,13 @@ namespace Apps.Akeneo.Polling;
 public class ProductPollingList(InvocationContext invocationContext) : AkeneoInvocable(invocationContext)
 {
     [PollingEvent("On products created or updated", "This event triggers whenever products are created or updated")]
-    public async Task<PollingEventResponse<DateMemory, ListProductResponse>> OnProductsCreatedOrUpdated(
-        PollingEventRequest<DateMemory> input, 
+    public async Task<PollingEventResponse<HashMemory, ListProductResponse>> OnProductsCreatedOrUpdated(
+        PollingEventRequest<HashMemory> input, 
         [PollingEventParameter] ProductFilter filter,
         [PollingEventParameter] LocaleRequest localeInput)
     {
         if (input.Memory is null)
-            return PollingHelper.NoFlight<ListProductResponse>();
+            return PollingHelper.NoFlight<ListProductResponse>(input.Memory);
 
         var query = new SearchQuery();
         query.AddDateAfter("updated", input.Memory.LastInteractionDate);
@@ -43,11 +43,13 @@ public class ProductPollingList(InvocationContext invocationContext) : AkeneoInv
         request.AddQueryParameter("search", query.ToString());
         request.AddQueryParameter("locales", localeInput.Locale);
 
-        var products = await Client.Paginate<ProductEntity>(request);
+        var products = await Client.Paginate<ProductContentEntity>(request);
+        var triggeredModels = PollingFilterHelper.GetChangedEntities(products, input.Memory, localeInput.Locale);
 
-        if (products.Count == 0)
-            return PollingHelper.NoFlight<ListProductResponse>();
+        if (triggeredModels.Count == 0)
+            return PollingHelper.NoFlight<ListProductResponse>(input.Memory);
 
-        return PollingHelper.TriggerFlight<ListProductResponse>(new(products));
+        var finalResponseList = triggeredModels.Cast<ProductEntity>().ToList();
+        return PollingHelper.TriggerFlight<ListProductResponse>(new(finalResponseList), input.Memory);
     }
 }
