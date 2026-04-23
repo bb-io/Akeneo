@@ -1,5 +1,5 @@
-﻿using Apps.Akeneo.Models.Request.Content;
-using Apps.Akeneo.Models.Response.Content;
+﻿using Apps.Akeneo.Models.Entities;
+using Apps.Akeneo.Models.Request.Content;
 using Apps.Akeneo.Models.Utility;
 using Blackbird.Applications.Sdk.Common.Files;
 
@@ -7,8 +7,8 @@ namespace Apps.Akeneo.Services.Content;
 
 public interface IContentService
 {
-    Task<SearchContentResponse> SearchContent(SearchContentRequest input, string locale);
-    Task<SearchContentResponse> SearchContentMinimal(string locale, string? nameContains);
+    Task<IEnumerable<IContentEntity>> SearchContent(SearchContentRequest input, string locale);
+    Task<IEnumerable<IContentEntity>> SearchContentMinimal(string locale, string? nameContains);
     Task<FileReference> DownloadContent(
         ContentRequest input, 
         string locale,

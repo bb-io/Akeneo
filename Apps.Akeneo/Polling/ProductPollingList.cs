@@ -2,6 +2,7 @@
 using Apps.Akeneo.Invocables;
 using Apps.Akeneo.Models.Entities;
 using Apps.Akeneo.Models.Queries;
+using Apps.Akeneo.Models.Request;
 using Apps.Akeneo.Models.Response.Product;
 using Apps.Akeneo.Polling.Models.Memory;
 using Apps.Akeneo.Polling.Models.Request;
@@ -15,13 +16,15 @@ namespace Apps.Akeneo.Polling;
 [PollingEventList("Products")]
 public class ProductPollingList(InvocationContext invocationContext) : AkeneoInvocable(invocationContext)
 {
-    [PollingEvent("On products created or updated", "This event triggers whenever products are created or updated")]
-    public async Task<PollingEventResponse<DateMemory, ListProductResponse>> OnProductsCreatedOrUpdated(
-        PollingEventRequest<DateMemory> input, 
-        [PollingEventParameter] ProductFilter filter)
+    [PollingEvent("On product content created or updated", 
+        "This event triggers whenever an existing product content is updated or a new product with content is created")]
+    public async Task<PollingEventResponse<HashMemory, ListProductResponse>> OnProductsCreatedOrUpdated(
+        PollingEventRequest<HashMemory> input, 
+        [PollingEventParameter] ProductFilter filter,
+        [PollingEventParameter] LocaleRequest localeInput)
     {
         if (input.Memory is null)
-            return PollingHelper.NoFlight<ListProductResponse>();
+            return PollingHelper.NoFlight<ListProductResponse>(input.Memory);
 
         var query = new SearchQuery();
         query.AddDateAfter("updated", input.Memory.LastInteractionDate);
@@ -39,12 +42,15 @@ public class ProductPollingList(InvocationContext invocationContext) : AkeneoInv
             throw new PluginMisconfigurationException("Search query is empty. Check filters/memory.");
 
         request.AddQueryParameter("search", query.ToString());
+        request.AddQueryParameter("locales", localeInput.Locale);
 
-        var products = await Client.Paginate<ProductEntity>(request);
+        var products = await Client.Paginate<ProductContentEntity>(request);
+        var triggeredModels = PollingFilterHelper.GetChangedEntities(products, input.Memory, localeInput.Locale);
 
-        if (products.Count == 0)
-            return PollingHelper.NoFlight<ListProductResponse>();
+        if (triggeredModels.Count == 0)
+            return PollingHelper.NoFlight<ListProductResponse>(input.Memory);
 
-        return PollingHelper.TriggerFlight<ListProductResponse>(new(products));
+        var finalResponseList = triggeredModels.Cast<ProductEntity>().ToList();
+        return PollingHelper.TriggerFlight<ListProductResponse>(new(finalResponseList), input.Memory);
     }
 }

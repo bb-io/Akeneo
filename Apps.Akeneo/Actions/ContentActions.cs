@@ -32,7 +32,10 @@ public class ContentActions(InvocationContext invocationContext, IFileManagement
         searchInput.ValidateDates();
 
         var services = _factory.GetContentServices(contentTypesInput.ContentTypes!);
-        return await services.ExecuteMany(searchInput, localeInput);
+        var result = await services.ExecuteMany(searchInput, localeInput);
+        
+        var castedResult = result.CastToEntities(localeInput.Locale).ToList();
+        return new SearchContentResponse(castedResult);
     }
 
     [BlueprintActionDefinition(BlueprintAction.DownloadContent)]

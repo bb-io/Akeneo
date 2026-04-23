@@ -1,8 +1,9 @@
-﻿using Apps.Akeneo.Polling.Models.Memory;
+﻿using Tests.Akeneo.Base;
+using Apps.Akeneo.Models.Request;
+using Apps.Akeneo.Polling;
+using Apps.Akeneo.Polling.Models.Memory;
 using Apps.Akeneo.Polling.Models.Request;
 using Blackbird.Applications.Sdk.Common.Polling;
-using Apps.Akeneo.Polling;
-using Tests.Akeneo.Base;
 
 namespace Tests.Akeneo.PollingTests;
 
@@ -15,14 +16,15 @@ public class ProductPollingTests : TestBase
     public async Task OnProductCreated_ReturnsProducts()
     {
         // Arrange
-        var request = new PollingEventRequest<DateMemory>
+        var request = new PollingEventRequest<HashMemory>
         {
-            Memory = new DateMemory { LastInteractionDate = DateTime.UtcNow.AddDays(-1) }
+            Memory = new HashMemory { ContentHashes = [] }
         };
         var filter = new ProductFilter { };
+        var locale = new LocaleRequest { Locale = "de_DE" };
 
         // Act
-        var result = await Polling.OnProductsCreatedOrUpdated(request, filter);
+        var result = await Polling.OnProductsCreatedOrUpdated(request, filter, locale);
 
         // Assert
         PrintJsonResult(result);

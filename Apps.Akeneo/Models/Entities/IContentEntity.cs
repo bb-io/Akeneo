@@ -4,5 +4,6 @@
     {
         public string Id { get; set; }
         public Dictionary<string, ProductValueEntity[]> Values { get; set; }
+        public DateTime Created { get; set; }
     }
 }

@@ -1,11 +1,11 @@
 ﻿using Apps.Akeneo.Constants;
 using Apps.Akeneo.Conversion.Product;
+using Apps.Akeneo.Extensions;
 using Apps.Akeneo.Invocables;
 using Apps.Akeneo.Models.Entities;
 using Apps.Akeneo.Models.Queries;
 using Apps.Akeneo.Models.Request.Content;
 using Apps.Akeneo.Models.Request.Product;
-using Apps.Akeneo.Models.Response.Content;
 using Apps.Akeneo.Models.Utility;
 using Blackbird.Applications.Sdk.Common.Exceptions;
 using Blackbird.Applications.Sdk.Common.Files;
@@ -19,7 +19,7 @@ namespace Apps.Akeneo.Services.Content.Concrete;
 public class ProductContentService(InvocationContext invocationContext, IFileManagementClient fileManagementClient) 
     : AkeneoInvocable(invocationContext), IContentService
 {
-    public async Task<SearchContentResponse> SearchContent(SearchContentRequest input, string locale)
+    public async Task<IEnumerable<IContentEntity>> SearchContent(SearchContentRequest input, string locale)
     {
         var query = new SearchQuery();
         query.Add("name", new QueryOperator { Operator = "CONTAINS", Value = input.NameContains, Locale = locale });
@@ -29,24 +29,22 @@ public class ProductContentService(InvocationContext invocationContext, IFileMan
         query.AddDateBefore("updated", input.UpdatedBefore);
 
         var request = new RestRequest("products-uuid");
-        request.AddQueryParameter("locales", locale);
+        request.AddQueryParameterIfNotNull("locales", locale);
         request.AddQueryParameter("search", query.ToString());
 
-        var products = await Client.Paginate<ProductContentEntity>(request);
-        return new(products.Select(x => new GetContentResponse(x, locale)).ToList());
+        return await Client.Paginate<ProductContentEntity>(request);
     }
 
-    public async Task<SearchContentResponse> SearchContentMinimal(string locale, string? nameContains)
+    public async Task<IEnumerable<IContentEntity>> SearchContentMinimal(string locale, string? nameContains)
     {
         var query = new SearchQuery();
         query.Add("name", new QueryOperator { Operator = "CONTAINS", Value = nameContains, Locale = locale });
 
         var request = new RestRequest("products-uuid");
-        request.AddQueryParameter("locales", locale);
+        request.AddQueryParameterIfNotNull("locales", locale);
         request.AddQueryParameter("search", query.ToString());
 
-        var products = await Client.PaginateOnce<ProductContentEntity>(request);
-        return new(products.Select(x => new GetContentResponse(x, locale)).ToList());
+        return await Client.PaginateOnce<ProductContentEntity>(request);
     }
 
     public async Task<FileReference> DownloadContent(

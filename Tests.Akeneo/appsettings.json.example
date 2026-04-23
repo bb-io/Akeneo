@@ -4,7 +4,8 @@
     "client_id": "",
     "client_secret": "",
     "username": "",
-    "password": ""
+    "password": "",
+    "access_token": ""
   },
   "TestFolder": "TestFiles"
 }

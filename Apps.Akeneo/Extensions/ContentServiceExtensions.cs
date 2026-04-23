@@ -1,13 +1,13 @@
-﻿using Apps.Akeneo.Models.Request;
+﻿using Apps.Akeneo.Models.Entities;
+using Apps.Akeneo.Models.Request;
 using Apps.Akeneo.Models.Request.Content;
-using Apps.Akeneo.Models.Response.Content;
 using Apps.Akeneo.Services.Content;
 
 namespace Apps.Akeneo.Extensions;
 
 public static class ContentServiceExtensions
 {
-    public static async Task<SearchContentResponse> ExecuteMany(
+    public static async Task<IEnumerable<IContentEntity>> ExecuteMany(
         this List<IContentService> contentServices,
         SearchContentRequest searchInput,
         LocaleRequest localeInput)
@@ -15,7 +15,6 @@ public static class ContentServiceExtensions
         var searchTasks = contentServices.Select(service => service.SearchContent(searchInput, localeInput.Locale));
         var results = await Task.WhenAll(searchTasks);
 
-        var allItems = results.SelectMany(x => x.Items).ToList();
-        return new(allItems);
+        return results.SelectMany(result => result);
     }
 }

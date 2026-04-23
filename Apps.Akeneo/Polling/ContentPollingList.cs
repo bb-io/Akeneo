@@ -19,16 +19,17 @@ public class ContentPollingList(InvocationContext invocationContext) : AkeneoInv
     private readonly ContentServiceFactory _factory = new(invocationContext, default!);
 
     [BlueprintEventDefinition(BlueprintEvent.ContentCreatedOrUpdatedMultiple)]
-    [PollingEvent("On content created or updated", "This event triggers whenever content is created or updated")]
-    public async Task<PollingEventResponse<DateMemory, OnContentCreatedOrUpdatedResponse>> OnContentCreatedOrUpdated(
-        PollingEventRequest<DateMemory> input,
+    [PollingEvent("On content created or updated", 
+        "This event triggers whenever a content of an existing item is updated or a new item with content is created")]
+    public async Task<PollingEventResponse<HashMemory, OnContentCreatedOrUpdatedResponse>> OnContentCreatedOrUpdated(
+        PollingEventRequest<HashMemory> input,
         [PollingEventParameter] ContentTypesRequest contentTypesInput,
         [PollingEventParameter] ContentFilter filter,
         [PollingEventParameter] LocaleRequest localeInput)
     {
         if (input.Memory is null)
-            return PollingHelper.NoFlight<OnContentCreatedOrUpdatedResponse>();
-
+            return PollingHelper.NoFlight<OnContentCreatedOrUpdatedResponse>(input.Memory);
+        
         contentTypesInput.ApplyDefaultValues();
         var services = _factory.GetContentServices(contentTypesInput.ContentTypes!);
 
@@ -37,11 +38,38 @@ public class ContentPollingList(InvocationContext invocationContext) : AkeneoInv
             UpdatedAfter = input.Memory.LastInteractionDate,
             NameContains = filter.NameContains,
         };
+        
         var results = await services.ExecuteMany(searchInput, localeInput);
+        var triggeredModels = PollingFilterHelper.GetChangedEntities(results, input.Memory, localeInput.Locale);
 
-        if (results.Items.Count == 0)
+        if (triggeredModels.Count == 0)
+            return PollingHelper.NoFlight<OnContentCreatedOrUpdatedResponse>(input.Memory);
+
+        var castedResults = triggeredModels.CastToEntities(localeInput.Locale).ToList();
+        return PollingHelper.TriggerFlight<OnContentCreatedOrUpdatedResponse>(new(castedResults), input.Memory);
+    }
+    
+    [PollingEvent("On content created", "This event triggers whenever new content is created")]
+    public async Task<PollingEventResponse<DateMemory, OnContentCreatedOrUpdatedResponse>> OnContentCreated(
+        PollingEventRequest<DateMemory> input,
+        [PollingEventParameter] ContentTypesRequest contentTypesInput)
+    {
+        if (input.Memory is null)
+            return PollingHelper.NoFlight<OnContentCreatedOrUpdatedResponse>();
+    
+        contentTypesInput.ApplyDefaultValues();
+        var services = _factory.GetContentServices(contentTypesInput.ContentTypes!);
+        var searchInput = new SearchContentRequest { CreatedAfter = input.Memory.LastInteractionDate };
+        
+        var results = await services.ExecuteMany(searchInput, new LocaleRequest());
+        var genuinelyNewItems = results
+            .Where(x => x.Created > input.Memory.LastInteractionDate)
+            .ToList();
+
+        if (genuinelyNewItems.Count == 0)
             return PollingHelper.NoFlight<OnContentCreatedOrUpdatedResponse>();
 
-        return PollingHelper.TriggerFlight<OnContentCreatedOrUpdatedResponse>(new(results.Items));
+        var castedResults = genuinelyNewItems.CastToEntities(string.Empty).ToList();
+        return PollingHelper.TriggerFlight<OnContentCreatedOrUpdatedResponse>(new(castedResults));
     }
 }

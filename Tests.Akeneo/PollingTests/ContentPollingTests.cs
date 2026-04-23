@@ -17,9 +17,9 @@ public class ContentPollingTests : TestBase
     public async Task OnContentCreatedOrUpdated_ReturnsContent()
     {
         // Arrange
-        var request = new PollingEventRequest<DateMemory>
+        var request = new PollingEventRequest<HashMemory>
         {
-            Memory = new DateMemory { LastInteractionDate = DateTime.UtcNow.AddHours(-1) }
+            Memory = new HashMemory { ContentHashes = [] }
         };
         var contentTypes = new ContentTypesRequest { ContentTypes = [] };
         var filter = new ContentFilter { };
@@ -27,6 +27,24 @@ public class ContentPollingTests : TestBase
 
         // Act
         var result = await Polling.OnContentCreatedOrUpdated(request, contentTypes, filter, locale);
+
+        // Assert
+        PrintJsonResult(result);
+        Assert.IsNotNull(result);
+    }
+
+    [TestMethod]
+    public async Task OnContentCreated_ReturnsContent()
+    {
+        // Arrange
+        var request = new PollingEventRequest<DateMemory>
+        {
+            Memory = new DateMemory { LastInteractionDate = DateTime.UtcNow - TimeSpan.FromHours(1) }
+        };
+        var contentTypes = new ContentTypesRequest { ContentTypes = [] };
+
+        // Act
+        var result = await Polling.OnContentCreated(request, contentTypes);
 
         // Assert
         PrintJsonResult(result);
