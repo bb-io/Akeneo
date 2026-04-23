@@ -20,23 +20,13 @@ public static class PollingFilterHelper
             bool isInMemory = memory.ContentHashes.TryGetValue(entityId, out string? previousHash);
             bool isGenuinelyNew = entity.Created >= memory.LastInteractionDate;
 
-            if (isGenuinelyNew)
+            if (isGenuinelyNew || (isInMemory && previousHash != currentHash))
             {
                 if (HasDataForLocale(entity, targetLocale))
                     triggeredEntities.Add(entity);
-                
-                memory.ContentHashes[entityId] = currentHash;
             }
-            else if (isInMemory)
-            {
-                if (previousHash == currentHash) 
-                    continue;
-                
-                triggeredEntities.Add(entity);
-                memory.ContentHashes[entityId] = currentHash;
-            }
-            else
-                memory.ContentHashes[entityId] = currentHash;
+            
+            memory.ContentHashes[entityId] = currentHash;
         }
 
         return triggeredEntities;
